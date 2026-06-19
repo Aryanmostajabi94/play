@@ -98,14 +98,16 @@ export default function BookingForm({ venue }: { venue: Venue }) {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-          gap: 14,
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
+      {/*
+        Date and Time are stacked, not side-by-side: iOS Safari renders the
+        native <input type="date"> control's pill-shaped widget at its own
+        intrinsic size, which ignores the column width and overflows into
+        whatever sits next to it (a CSS grid/flex constraint can't fix
+        this — it's the native control overflowing its own box). Full-width
+        stacked fields sidestep the bug entirely.
+      */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div>
           <label style={fieldLabel}>Date</label>
           <input
             type="date"
@@ -116,7 +118,7 @@ export default function BookingForm({ venue }: { venue: Venue }) {
             className="input-el"
           />
         </div>
-        <div style={{ minWidth: 0 }}>
+        <div>
           <label style={fieldLabel}>Time</label>
           <select
             required
