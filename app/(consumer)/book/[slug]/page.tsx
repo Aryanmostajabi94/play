@@ -1,5 +1,5 @@
 import { getVenueBySlug } from "../../../../lib/venues";
-import BookingForm from "../../../../components/BookingForm";
+import BookingForm from "../../../../components/booking/BookingForm";
 
 export default async function BookPage({
   params,

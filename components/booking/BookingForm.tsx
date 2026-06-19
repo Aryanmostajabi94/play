@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createBooking } from "../app/actions/bookings";
+import { useRouter } from "next/navigation";
+import { createBooking } from "../../app/actions/bookings";
 import {
   LARGE_GROUP_THRESHOLD,
   OCCASIONS,
   type NotificationChannel,
   type Venue,
-} from "../types/database";
+} from "../../types/database";
 
 const NOTIFICATION_OPTIONS: { id: NotificationChannel; label: string }[] = [
   { id: "in_app", label: "In-app" },
@@ -27,6 +28,7 @@ function buildTimeSlots(): string[] {
 }
 
 export default function BookingForm({ venue }: { venue: Venue }) {
+  const router = useRouter();
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [partySize, setPartySize] = useState(2);
@@ -35,9 +37,6 @@ export default function BookingForm({ venue }: { venue: Venue }) {
   const [channels, setChannels] = useState<NotificationChannel[]>(["in_app"]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ bookingId: string; status: string } | null>(
-    null,
-  );
 
   const timeSlots = useMemo(buildTimeSlots, []);
   const isLargeGroup = partySize >= LARGE_GROUP_THRESHOLD;
@@ -71,34 +70,10 @@ export default function BookingForm({ venue }: { venue: Venue }) {
       return;
     }
 
-    setResult({ bookingId: res.bookingId!, status: res.status! });
-  }
-
-  if (result) {
-    return (
-      <div
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 20,
-          padding: 28,
-          textAlign: "center",
-        }}
-      >
-        <div style={{ fontSize: 40, marginBottom: 10 }}>
-          {result.status === "confirmed" ? "✅" : "📨"}
-        </div>
-        <div className="heading" style={{ fontSize: 28, marginBottom: 8 }}>
-          {result.status === "confirmed" ? "Booking confirmed" : "Request sent"}
-        </div>
-        <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 4 }}>
-          Booking ID: {result.bookingId}
-        </div>
-        <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-          Status: {result.status}
-        </div>
-      </div>
-    );
+    // Hand off to the dedicated booking-status screen (Instant Confirm /
+    // Request Sent) rather than rendering the result inline — see
+    // app/(consumer)/booking/[id]/page.tsx.
+    router.push(`/booking/${res.bookingId}`);
   }
 
   return (
@@ -123,8 +98,14 @@ export default function BookingForm({ venue }: { venue: Venue }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gap: 14,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
           <label style={fieldLabel}>Date</label>
           <input
             type="date"
@@ -135,7 +116,7 @@ export default function BookingForm({ venue }: { venue: Venue }) {
             className="input-el"
           />
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <label style={fieldLabel}>Time</label>
           <select
             required

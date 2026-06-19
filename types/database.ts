@@ -48,8 +48,24 @@ export interface Booking {
   special_requests: string | null;
   notification_channels: NotificationChannel[];
   cancellation_policy: CancellationPolicy;
+  confirmation_deadline: string | null; // set only for booking_type "request"
+  confirmed_at: string | null;
   user_tier_at_booking: UserTier;
   created_at: string;
+}
+
+// Display fields needed by the booking-status screens (Instant Confirm /
+// Request Sent), joined in from the parent venue.
+export interface BookingVenueSummary {
+  name: string;
+  area: string;
+  price_display: string | null;
+  accent_color: string;
+  cover_image: string | null;
+}
+
+export interface BookingWithVenue extends Booking {
+  venue: BookingVenueSummary;
 }
 
 // Large-group threshold per Booking Engine Spec v1.0:
