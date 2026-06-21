@@ -68,6 +68,37 @@ export interface BookingWithVenue extends Booking {
   venue: BookingVenueSummary;
 }
 
+// ============================================================
+// Venue Dashboard (Section F — Screen Inventory v1.0)
+// ============================================================
+
+// F2 Pending Requests: one row per incoming request-based booking,
+// joined with the guest's name for display. Per Booking Engine Spec v1.0
+// section 5: "Each row: guest name, date, time, party size, occasion,
+// special requests, time remaining."
+export interface VenueBookingRow {
+  id: string;
+  date: string;
+  time_slot: string;
+  party_size: number;
+  occasion: string | null;
+  special_requests: string | null;
+  status: BookingStatus;
+  confirmation_deadline: string | null;
+  user_tier_at_booking: UserTier;
+  guest_name: string;
+}
+
+// F1 Venue Dashboard Home: "Overview of today's bookings, pending
+// requests, week summary, quick actions."
+export interface VenueDashboardSummary {
+  venueName: string;
+  todayBookings: VenueBookingRow[];
+  pendingRequestCount: number;
+  weekConfirmedCount: number;
+  weekPendingCount: number;
+}
+
 // Large-group threshold per Booking Engine Spec v1.0:
 // party sizes of 20+ trigger large-group / request-only handling.
 export const LARGE_GROUP_THRESHOLD = 20;
