@@ -1,13 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "../../lib/supabaseServer";
+import { TEMP_USER_ID } from "../../lib/bookings";
 import { LARGE_GROUP_THRESHOLD } from "../../types/database";
 import type { NotificationChannel } from "../../types/database";
-
-// TEMPORARY: stands in for the logged-in user until real Supabase Auth
-// (a separate P0 item) is wired up. Matches the seed user in
-// supabase/seed/0001_seed_venue.sql.
-const TEMP_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 export interface CreateBookingInput {
   venueId: string;
@@ -108,4 +105,42 @@ export async function createBooking(
   }
 
   return { success: true, bookingId: booking.id, status: booking.status };
+}
+
+export interface CancelBookingResult {
+  success: boolean;
+  error?: string;
+}
+
+// C9 Cancel Booking — cancels a pending/confirmed booking on the user's
+// behalf. Eligibility (cancellation_policy / cancellation_window_hrs) is
+// checked client-side for the warning shown in BookingDetail (C8); this
+// guards server-side only against cancelling a booking that's already in
+// a terminal state.
+export async function cancelBooking(
+  bookingId: string,
+  reason?: string,
+): Promise<CancelBookingResult> {
+  const supabase = getSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({
+      status: "cancelled_by_user",
+      cancelled_at: new Date().toISOString(),
+      cancelled_by: "user",
+      cancellation_reason: reason || null,
+    })
+    .eq("id", bookingId)
+    .eq("user_id", TEMP_USER_ID)
+    .in("status", ["pending", "confirmed"]);
+
+  if (error) {
+    console.error("cancelBooking error:", error.message);
+    return { success: false, error: "Could not cancel this booking. Please try again." };
+  }
+
+  revalidatePath("/bookings");
+  revalidatePath(`/booking/${bookingId}`);
+  return { success: true };
 }

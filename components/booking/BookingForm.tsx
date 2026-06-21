@@ -72,8 +72,10 @@ export default function BookingForm({ venue }: { venue: Venue }) {
 
     // Hand off to the dedicated booking-status screen (Instant Confirm /
     // Request Sent) rather than rendering the result inline — see
-    // app/(consumer)/booking/[id]/page.tsx.
-    router.push(`/booking/${res.bookingId}`);
+    // app/(consumer)/booking/[id]/page.tsx. `?new=1` tells that route to
+    // show the celebratory C3/C4 screen instead of the C8 Booking Detail
+    // view shown when revisiting from Booking History.
+    router.push(`/booking/${res.bookingId}?new=1`);
   }
 
   return (

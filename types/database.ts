@@ -48,8 +48,13 @@ export interface Booking {
   special_requests: string | null;
   notification_channels: NotificationChannel[];
   cancellation_policy: CancellationPolicy;
+  cancellation_window_hrs: number | null;
   confirmation_deadline: string | null; // set only for booking_type "request"
   confirmed_at: string | null;
+  declined_at: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+  cancelled_by: "user" | "venue" | null;
   user_tier_at_booking: UserTier;
   created_at: string;
 }
