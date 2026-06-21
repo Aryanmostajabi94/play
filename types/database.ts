@@ -190,3 +190,40 @@ export const VENUE_CATEGORIES: { value: VenueCategory; label: string }[] = [
 ];
 
 export const PRICE_RANGES: PriceRange[] = ["$", "$$", "$$$", "$$$$"];
+
+// ============================================================
+// D1/D2 — Checkout & Subscription Success (Screen Inventory v1.0)
+// ============================================================
+
+export type PaidTier = "insider" | "elite";
+export type BillingCycle = "monthly" | "annual";
+
+export interface PlanOption {
+  tier: PaidTier;
+  name: string;
+  monthlyPrice: number; // AED
+  annualPrice: number; // AED, billed yearly
+  perks: string[];
+}
+
+export const PLAN_OPTIONS: PlanOption[] = [
+  {
+    tier: "insider",
+    name: "Insider",
+    monthlyPrice: 149,
+    annualPrice: 1490,
+    perks: ["Unlock Insider-tier venues", "Priority booking windows", "Weekly curated picks"],
+  },
+  {
+    tier: "elite",
+    name: "Elite",
+    monthlyPrice: 399,
+    annualPrice: 3990,
+    perks: [
+      "Everything in Insider",
+      "Unlock Elite-tier venues",
+      "Elite drop early access",
+      "Dedicated concierge",
+    ],
+  },
+];
