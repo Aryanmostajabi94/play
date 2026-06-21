@@ -27,6 +27,9 @@ export default function VenueNav({ venueName }: { venueName: string }) {
         <Link href="/dashboard/upcoming" style={navLink}>
           Upcoming Bookings
         </Link>
+        <Link href="/dashboard/listing" style={navLink}>
+          Edit Listing
+        </Link>
       </div>
       <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{venueName}</div>
     </nav>

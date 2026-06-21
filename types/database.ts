@@ -132,3 +132,61 @@ export interface NotificationPreferences {
 }
 
 export const REMINDER_HOUR_OPTIONS = [1, 2, 3, 6, 12, 24] as const;
+
+// ============================================================
+// F5 — Listing Editor (Screen Inventory v1.0)
+// ============================================================
+
+export type VenueCategory =
+  | "beach"
+  | "finedining"
+  | "restaurants"
+  | "nightlife"
+  | "brunch"
+  | "events"
+  | "exclusive";
+
+export type PriceRange = "$" | "$$" | "$$$" | "$$$$";
+
+// Fields a venue owner/manager can edit from F5. Scoped to columns that
+// live on the `venues` table itself — weekly open/closed hours and
+// blackout dates are a separate `availability` concept owned by F6
+// (Availability Manager), not part of this row, so they're intentionally
+// excluded here.
+export interface VenueListingDetail {
+  id: string;
+  name: string;
+  category: VenueCategory;
+  area: string;
+  address: string | null;
+  description: string | null;
+  price_range: PriceRange | null;
+  price_display: string | null;
+  phone: string | null;
+  website: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  amenities: string[];
+  cover_image: string | null;
+  images: string[];
+  booking_type: BookingType;
+  confirmation_window_hrs: number;
+  cancellation_policy: CancellationPolicy;
+  cancellation_window_hrs: number | null;
+  cancellation_fee_per_person: number;
+  requires_card: boolean;
+  min_party_size: number;
+  max_party_size: number;
+}
+
+export const VENUE_CATEGORIES: { value: VenueCategory; label: string }[] = [
+  { value: "beach", label: "Beach Club" },
+  { value: "finedining", label: "Fine Dining" },
+  { value: "restaurants", label: "Restaurant" },
+  { value: "nightlife", label: "Nightlife" },
+  { value: "brunch", label: "Brunch" },
+  { value: "events", label: "Events" },
+  { value: "exclusive", label: "Exclusive" },
+];
+
+export const PRICE_RANGES: PriceRange[] = ["$", "$$", "$$$", "$$$$"];
