@@ -115,3 +115,20 @@ export const OCCASIONS = [
   "Date Night",
   "Other",
 ] as const;
+
+// ============================================================
+// E1 — Notification Preferences (Screen Inventory v1.0)
+// ============================================================
+
+export interface NotificationPreferences {
+  user_id: string;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  whatsapp_enabled: boolean;
+  reminder_hours_before: number;
+  weekly_picks_enabled: boolean;
+  elite_drop_enabled: boolean;
+  updated_at: string;
+}
+
+export const REMINDER_HOUR_OPTIONS = [1, 2, 3, 6, 12, 24] as const;
