@@ -24,6 +24,9 @@ export default function VenueNav({ venueName }: { venueName: string }) {
         <Link href="/dashboard/requests" style={navLink}>
           Pending Requests
         </Link>
+        <Link href="/dashboard/upcoming" style={navLink}>
+          Upcoming Bookings
+        </Link>
       </div>
       <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{venueName}</div>
     </nav>

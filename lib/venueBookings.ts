@@ -53,6 +53,37 @@ export async function getPendingRequests(
   return (data ?? []).map(toVenueBookingRow);
 }
 
+// F3 Upcoming Bookings — all confirmed bookings for the next 14 days,
+// soonest first. Per Screen Inventory v1.0: "All confirmed bookings for
+// next 14 days. Guest details, tier badge, special requests."
+export async function getUpcomingBookings(
+  venueId: string = TEMP_VENUE_ID,
+): Promise<VenueBookingRow[]> {
+  const supabase = getSupabaseServerClient();
+
+  const today = new Date().toISOString().slice(0, 10);
+  const twoWeeksOut = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(BOOKING_ROW_SELECT)
+    .eq("venue_id", venueId)
+    .eq("status", "confirmed")
+    .gte("date", today)
+    .lte("date", twoWeeksOut)
+    .order("date", { ascending: true })
+    .order("time_slot", { ascending: true });
+
+  if (error) {
+    console.error("getUpcomingBookings error:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map(toVenueBookingRow);
+}
+
 // F1 Venue Dashboard Home — today's bookings, pending count, week summary.
 // Wrapped in React's cache() so the shared (venue) layout and the
 // dashboard page (both calling this per request) hit Supabase once, not
