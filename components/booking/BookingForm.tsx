@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createBooking } from "../../app/actions/bookings";
+import BookingSummary, { type PendingBooking } from "./BookingSummary";
 import {
   LARGE_GROUP_THRESHOLD,
   OCCASIONS,
@@ -27,16 +26,18 @@ function buildTimeSlots(): string[] {
   return slots;
 }
 
+// C1 Booking Form. Submitting no longer creates the booking directly —
+// it hands the collected values to C2 Booking Summary (see
+// components/booking/BookingSummary.tsx) for review first. The actual
+// createBooking call now lives there, fired by "Confirm booking".
 export default function BookingForm({ venue }: { venue: Venue }) {
-  const router = useRouter();
+  const [step, setStep] = useState<"form" | "summary">("form");
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [partySize, setPartySize] = useState(2);
   const [occasion, setOccasion] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
   const [channels, setChannels] = useState<NotificationChannel[]>(["in_app"]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const timeSlots = useMemo(buildTimeSlots, []);
   const isLargeGroup = partySize >= LARGE_GROUP_THRESHOLD;
@@ -48,39 +49,27 @@ export default function BookingForm({ venue }: { venue: Venue }) {
     );
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleContinue(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSubmitting(true);
+    if (!channels.length) return;
+    setStep("summary");
+  }
 
-    const res = await createBooking({
-      venueId: venue.id,
+  if (step === "summary") {
+    const pending: PendingBooking = {
       date,
       timeSlot,
       partySize,
-      occasion: occasion || undefined,
-      specialRequests: specialRequests || undefined,
-      notificationChannels: channels,
-    });
-
-    setSubmitting(false);
-
-    if (!res.success) {
-      setError(res.error ?? "Something went wrong.");
-      return;
-    }
-
-    // Hand off to the dedicated booking-status screen (Instant Confirm /
-    // Request Sent) rather than rendering the result inline — see
-    // app/(consumer)/booking/[id]/page.tsx. `?new=1` tells that route to
-    // show the celebratory C3/C4 screen instead of the C8 Booking Detail
-    // view shown when revisiting from Booking History.
-    router.push(`/booking/${res.bookingId}?new=1`);
+      occasion,
+      specialRequests,
+      channels,
+    };
+    return <BookingSummary venue={venue} pending={pending} onBack={() => setStep("form")} />;
   }
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleContinue}
       style={{
         background: "rgba(255,255,255,0.03)",
         border: `1px solid ${venue.accent_color}33`,
@@ -218,13 +207,15 @@ export default function BookingForm({ venue }: { venue: Venue }) {
         </div>
       </div>
 
-      {error && (
-        <div style={{ color: "var(--accent-pink)", fontSize: 13 }}>{error}</div>
+      {channels.length === 0 && (
+        <div style={{ color: "var(--accent-pink)", fontSize: 13 }}>
+          Pick at least one notification preference.
+        </div>
       )}
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={channels.length === 0}
         className="btn"
         style={{
           width: "100%",
@@ -235,10 +226,10 @@ export default function BookingForm({ venue }: { venue: Venue }) {
           padding: 15,
           fontSize: 15,
           fontWeight: 800,
-          opacity: submitting ? 0.6 : 1,
+          opacity: channels.length === 0 ? 0.6 : 1,
         }}
       >
-        {submitting ? "Booking…" : "Reserve table"}
+        Review booking
       </button>
     </form>
   );
