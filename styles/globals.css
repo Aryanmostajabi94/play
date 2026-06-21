@@ -30,8 +30,11 @@ body {
 }
 
 .input-el {
+  display: block;
   width: 100%;
   min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 12px;
@@ -44,6 +47,14 @@ body {
 .input-el:focus {
   outline: none;
   border-color: var(--accent-pink);
+}
+
+/* iOS Safari renders <input type="date">'s internal value control only as
+   wide as its content, ignoring the element's own box width — appearance:
+   none (above) is the fix, but Safari also needs min-height set explicitly
+   or the control can render visually shorter than its padding implies. */
+input[type="date"].input-el {
+  min-height: 44px;
 }
 
 .btn {
