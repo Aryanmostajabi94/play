@@ -175,6 +175,26 @@ export default function BookingSummary({
             fontWeight: 700,
           }}
         >
+          Payment
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+          {venue.requires_card
+            ? "A card is required to hold this reservation — you won't be charged unless you no-show or cancel outside the policy below."
+            : `Pay at the venue. ${venue.price_display ?? ""}`.trim()}
+        </div>
+      </div>
+
+      <div>
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--text-muted)",
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            marginBottom: 6,
+            fontWeight: 700,
+          }}
+        >
           Cancellation policy
         </div>
         <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
