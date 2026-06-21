@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Venue } from "../types/database";
+import type { DiscoverVenue, Venue } from "../types/database";
 
 export async function getVenueBySlug(slug: string): Promise<Venue | null> {
   const { data, error } = await supabase
@@ -17,4 +17,26 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
   }
 
   return data as Venue;
+}
+
+// B1 Home/Discover. Per Screen Inventory v1.0: hero, search, category
+// filters, venue grid. Pulls every live venue — featured first, then by
+// rating — so the grid grows automatically as venues are seeded/claimed
+// (currently just the one row from supabase/seed/0001_seed_venue.sql).
+export async function listLiveVenues(): Promise<DiscoverVenue[]> {
+  const { data, error } = await supabase
+    .from("venues")
+    .select(
+      "id, name, slug, category, area, description, price_display, accent_color, cover_image, rating, review_count, access_tier, play_tags, amenities, is_featured",
+    )
+    .eq("status", "live")
+    .order("is_featured", { ascending: false })
+    .order("rating", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    console.error("listLiveVenues error:", error.message);
+    return [];
+  }
+
+  return data as DiscoverVenue[];
 }

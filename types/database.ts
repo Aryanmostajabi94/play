@@ -35,6 +35,30 @@ export interface Venue {
   max_party_size: number;
 }
 
+// ============================================================
+// B1 — Home / Discover (Screen Inventory v1.0)
+// ============================================================
+
+// Fields needed for the Discover grid/hero that aren't part of the
+// minimal `Venue` shape above (which was scoped to the booking form only).
+export interface DiscoverVenue {
+  id: string;
+  name: string;
+  slug: string;
+  category: VenueCategory;
+  area: string;
+  description: string | null;
+  price_display: string | null;
+  accent_color: string;
+  cover_image: string | null;
+  rating: number | null;
+  review_count: number;
+  access_tier: UserTier;
+  play_tags: string[];
+  amenities: string[];
+  is_featured: boolean;
+}
+
 export interface Booking {
   id: string;
   user_id: string;

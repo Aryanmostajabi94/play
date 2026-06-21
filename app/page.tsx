@@ -1,35 +1,22 @@
-import Link from "next/link";
+import { listLiveVenues } from "../lib/venues";
+import HomeDiscover from "../components/home/HomeDiscover";
 
-export default function Home() {
+// Screen B1 — Home / Discover. Per Screen Inventory v1.0: "hero carousel,
+// AI search bar, category filters, venue grid." Replaces the placeholder
+// stub that previously sat at "/" and just linked straight to one booking
+// page. Ported from the old MVP prototype (Play_V11.jsx) — see
+// components/home/HomeDiscover.tsx for what changed in the port.
+export default async function Home() {
+  const venues = await listLiveVenues();
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        gap: 16,
-      }}
-    >
-      <div className="heading" style={{ fontSize: 48 }}>
-        PLAY
+    <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 80px" }}>
+      <div style={{ padding: "24px 0 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span className="heading" style={{ fontSize: 30 }}>
+          PLAY
+        </span>
       </div>
-      <Link
-        href="/book/cove-beach-bluewaters"
-        className="btn"
-        style={{
-          background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-          color: "#fff",
-          borderRadius: 14,
-          padding: "14px 28px",
-          fontSize: 14,
-          fontWeight: 800,
-          textDecoration: "none",
-        }}
-      >
-        Book Cove Beach →
-      </Link>
+      <HomeDiscover venues={venues} />
     </main>
   );
 }
