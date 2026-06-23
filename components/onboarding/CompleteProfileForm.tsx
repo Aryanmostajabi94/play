@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateAccount } from "../../app/actions/accountSettings";
 import type { AccountProfile } from "../../lib/account";
 
@@ -14,58 +15,47 @@ const fieldLabel: React.CSSProperties = {
   fontWeight: 700,
 };
 
-// E2 — Account Settings. Per Tasks Tracker: "Edit name, phone number,
-// city, avatar."
-export default function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
-  const [name, setName] = useState(profile.name);
+// Post-signup onboarding step. Per the new signup flow, account creation
+// no longer blocks on email confirmation — instead it drops the user
+// here to fill in the details the signup form didn't collect (phone,
+// date of birth, avatar) before they land on the app. Email verification
+// itself is deferred to the moment they try to book (see
+// app/actions/bookings.ts) rather than gating this step.
+//
+// Distinct from components/settings/AccountSettingsForm.tsx (E2) even
+// though the fields overlap — this one only asks for what's missing,
+// has "Skip for now" framing instead of a persistent settings page, and
+// redirects into the app on save instead of staying put.
+export default function CompleteProfileForm({ profile }: { profile: AccountProfile }) {
+  const router = useRouter();
   const [phone, setPhone] = useState(profile.phone ?? "");
-  const [city, setCity] = useState(profile.city);
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? "");
   const [dateOfBirth, setDateOfBirth] = useState(profile.date_of_birth ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? "");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSave() {
+  async function handleContinue() {
     setSaving(true);
     setError(null);
-    setSaved(false);
 
-    const res = await updateAccount({ name, phone, city, avatarUrl, dateOfBirth });
+    const res = await updateAccount({
+      name: profile.name,
+      phone,
+      city: profile.city,
+      avatarUrl,
+      dateOfBirth,
+    });
 
     setSaving(false);
     if (!res.success) {
       setError(res.error ?? "Something went wrong.");
       return;
     }
-    setSaved(true);
+    router.push("/");
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 6 }}>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: "50%",
-            background: avatarUrl
-              ? `center/cover url(${avatarUrl})`
-              : "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 22,
-            fontWeight: 800,
-            color: "#fff",
-            flexShrink: 0,
-          }}
-        >
-          {!avatarUrl && (name.trim()[0]?.toUpperCase() ?? "?")}
-        </div>
-        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{profile.email}</div>
-      </div>
-
       <div>
         <label style={fieldLabel}>Avatar URL</label>
         <input
@@ -77,11 +67,6 @@ export default function AccountSettingsForm({ profile }: { profile: AccountProfi
       </div>
 
       <div>
-        <label style={fieldLabel}>Name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} className="input-el" />
-      </div>
-
-      <div>
         <label style={fieldLabel}>Phone number</label>
         <input
           value={phone}
@@ -89,11 +74,6 @@ export default function AccountSettingsForm({ profile }: { profile: AccountProfi
           placeholder="+971 50 123 4567"
           className="input-el"
         />
-      </div>
-
-      <div>
-        <label style={fieldLabel}>City</label>
-        <input value={city} onChange={(e) => setCity(e.target.value)} className="input-el" />
       </div>
 
       <div>
@@ -112,12 +92,12 @@ export default function AccountSettingsForm({ profile }: { profile: AccountProfi
       {error && <div style={{ color: "var(--accent-pink)", fontSize: 13 }}>{error}</div>}
 
       <button
-        onClick={handleSave}
+        onClick={handleContinue}
         disabled={saving}
         className="btn"
         style={{
           width: "100%",
-          background: `linear-gradient(135deg, var(--accent-pink), var(--accent-orange))`,
+          background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
           color: "#fff",
           border: "none",
           borderRadius: 14,
@@ -127,7 +107,22 @@ export default function AccountSettingsForm({ profile }: { profile: AccountProfi
           opacity: saving ? 0.6 : 1,
         }}
       >
-        {saving ? "Saving…" : saved ? "Saved ✓" : "Save changes"}
+        {saving ? "Saving…" : "Save & continue"}
+      </button>
+
+      <button
+        onClick={() => router.push("/")}
+        className="btn"
+        style={{
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          color: "var(--text-muted)",
+          fontSize: 13,
+          padding: 8,
+        }}
+      >
+        Skip for now
       </button>
     </div>
   );

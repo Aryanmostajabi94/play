@@ -9,7 +9,7 @@ export default function SignInPage({
 }) {
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to manage your bookings.">
-      <SignInForm googleNotConfigured={searchParams.error === "google_not_configured"} />
+      <SignInForm providerError={searchParams.error} />
     </AuthShell>
   );
 }

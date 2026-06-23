@@ -40,7 +40,9 @@ export default function SignUpForm() {
   if (awaitingConfirmation) {
     return (
       <div style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
-        Check your email to confirm your account before signing in.
+        Check your email to confirm your account, then sign in — you'll be able to
+        finish your profile and start browsing right away. You only need to verify
+        again later if you try to book a place.
       </div>
     );
   }

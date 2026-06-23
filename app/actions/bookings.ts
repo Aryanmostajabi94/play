@@ -2,9 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "../../lib/supabaseServer";
-import { requireUserId } from "../../lib/auth";
+import { requireUserId, requireVerifiedUserId } from "../../lib/auth";
 import { LARGE_GROUP_THRESHOLD } from "../../types/database";
 import type { NotificationChannel } from "../../types/database";
+
+// Whole-years-old as of today, from a YYYY-MM-DD date_of_birth string.
+function calculateAge(dateOfBirth: string): number {
+  const dob = new Date(dateOfBirth);
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const hasHadBirthdayThisYear =
+    now.getMonth() > dob.getMonth() ||
+    (now.getMonth() === dob.getMonth() && now.getDate() >= dob.getDate());
+  if (!hasHadBirthdayThisYear) age -= 1;
+  return age;
+}
 
 export interface CreateBookingInput {
   venueId: string;
@@ -21,6 +33,7 @@ export interface CreateBookingResult {
   bookingId?: string;
   status?: string;
   error?: string;
+  needsEmailVerification?: boolean;
 }
 
 export async function createBooking(
@@ -42,17 +55,45 @@ export async function createBooking(
   // A3/A4 — booking on someone's behalf now requires knowing who they
   // actually are; redirects to /sign-in (with a return path) rather than
   // silently attributing the booking to TEMP_USER_ID.
-  const userId = await requireUserId(`/sign-in?next=/book`);
+  const { userId, verified } = await requireVerifiedUserId(`/sign-in?next=/book`);
+
+  // Per the new onboarding flow, signup no longer blocks on a confirmed
+  // email — verification is deferred to right here, the actual point a
+  // booking is created, instead of gating account access entirely.
+  if (!verified) {
+    return {
+      success: false,
+      needsEmailVerification: true,
+      error: "Please verify your email before booking — check your inbox for the confirmation link.",
+    };
+  }
 
   const supabase = getSupabaseServerClient();
 
-  const { data: venue, error: venueError } = await supabase
+  let { data: venue, error: venueError } = await supabase
     .from("venues")
     .select(
-      "id, booking_type, confirmation_window_hrs, cancellation_policy, cancellation_window_hrs, min_party_size, max_party_size",
+      "id, booking_type, confirmation_window_hrs, cancellation_policy, cancellation_window_hrs, min_party_size, max_party_size, min_age",
     )
     .eq("id", input.venueId)
     .single();
+
+  // Fallback for before migration 0004_add_dob_and_age_limit.sql has
+  // been applied — min_age won't exist on `venues` yet. Degrade to "no
+  // age restriction" rather than failing every booking on this venue.
+  if (venueError?.message?.includes("min_age")) {
+    const fallback = await supabase
+      .from("venues")
+      .select(
+        "id, booking_type, confirmation_window_hrs, cancellation_policy, cancellation_window_hrs, min_party_size, max_party_size",
+      )
+      .eq("id", input.venueId)
+      .single();
+    if (!fallback.error && fallback.data) {
+      venue = { ...fallback.data, min_age: null };
+      venueError = null;
+    }
+  }
 
   if (venueError || !venue) {
     return { success: false, error: "Venue not found." };
@@ -63,6 +104,36 @@ export async function createBooking(
       success: false,
       error: `Minimum party size for this venue is ${venue.min_party_size}.`,
     };
+  }
+
+  // Age-limit enforcement (migration 0004_add_dob_and_age_limit.sql).
+  // venue.min_age is nullable — null means no restriction, so most venues
+  // skip this entirely. When set, the user needs date_of_birth on file
+  // (collected in onboarding/Account Settings) to prove eligibility; no
+  // DOB on file is treated the same as under-age rather than silently
+  // letting the booking through.
+  if (venue.min_age != null) {
+    const { data: userRow, error: userRowError } = await supabase
+      .from("users")
+      .select("date_of_birth")
+      .eq("id", userId)
+      .single();
+
+    const dob = !userRowError ? userRow?.date_of_birth : null;
+    if (!dob) {
+      return {
+        success: false,
+        error: `This venue requires guests to be ${venue.min_age}+. Add your date of birth in Account Settings to book.`,
+      };
+    }
+
+    const age = calculateAge(dob);
+    if (age < venue.min_age) {
+      return {
+        success: false,
+        error: `This venue requires guests to be ${venue.min_age}+.`,
+      };
+    }
   }
 
   // Large groups (20+) are request-only regardless of the venue's normal

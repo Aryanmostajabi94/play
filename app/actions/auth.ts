@@ -93,8 +93,15 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
     );
   }
 
-  // No session means the Supabase project requires email confirmation —
-  // show a "check your email" state instead of redirecting straight in.
+  // No session means the Supabase project still has "Confirm email"
+  // required-for-login switched on (Authentication > Providers > Email
+  // in the Supabase dashboard) — there's no tool that can flip that
+  // setting from here. With it on, show the old "check your email" state
+  // since there's no session/cookie yet to let them into anything.
+  // With it off, signUp returns a session immediately and they go
+  // straight to the new profile-completion step below instead of
+  // sitting on a confirmation screen — verifying email is deferred to
+  // the moment they actually try to book (see app/actions/bookings.ts).
   if (!data.session) {
     return { success: true, needsEmailConfirmation: true };
   }
@@ -102,7 +109,7 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
   if (tier === "insider" || tier === "elite") {
     redirect(`/upgrade/checkout?tier=${tier}`);
   }
-  redirect("/");
+  redirect("/onboarding/profile");
 }
 
 // A4 — Sign In.
@@ -141,6 +148,43 @@ export async function signInWithGoogleAction(): Promise<void> {
 
   if (error || !data.url) {
     redirect("/sign-in?error=google_not_configured");
+  }
+  redirect(data.url);
+}
+
+// A4 — "Continue with Apple." Same shape as Google above: requires the
+// Apple provider enabled in Supabase (Authentication > Providers) with a
+// Services ID / key, which isn't configured yet. Code path is otherwise
+// complete.
+export async function signInWithAppleAction(): Promise<void> {
+  const supabase = getSupabaseRouteClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: { redirectTo: `${siteUrl}/auth/callback` },
+  });
+
+  if (error || !data.url) {
+    redirect("/sign-in?error=apple_not_configured");
+  }
+  redirect(data.url);
+}
+
+// A4 — "Continue with Facebook." Same shape as Google/Apple above;
+// requires the Facebook provider enabled in Supabase with a Facebook App
+// ID/secret, not configured yet.
+export async function signInWithFacebookAction(): Promise<void> {
+  const supabase = getSupabaseRouteClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "facebook",
+    options: { redirectTo: `${siteUrl}/auth/callback` },
+  });
+
+  if (error || !data.url) {
+    redirect("/sign-in?error=facebook_not_configured");
   }
   redirect(data.url);
 }
