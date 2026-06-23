@@ -46,16 +46,23 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
     return { success: false, error: error?.message ?? "Could not create your account." };
   }
 
-  // Insert the matching public.users row. Uses the service-role client
-  // because the freshly created auth user has no session yet when email
-  // confirmation is required (so the RLS-bound route client can't write
-  // on their behalf) — same trusted-server-write pattern the rest of the
-  // app uses, just keyed off a real auth id instead of TEMP_USER_ID now.
-  const admin = getSupabaseServerClient();
-  const { error: insertError } = await admin.from("users").insert({
+  // Insert the matching public.profiles row, keyed by the authenticated
+  // user's own id/email from auth.signUp — not re-derived from form input,
+  // so it can't drift from what Supabase Auth actually created.
+  //
+  // Client choice matters for RLS: when no email confirmation is required,
+  // `supabase` (the route client) already holds the new session set during
+  // signUp above, so this insert runs as that authenticated user and is
+  // governed by a normal "insert own row" RLS policy (auth.uid() = id) —
+  // not the anonymous/anon-key role. Only when email confirmation IS
+  // required is there no session yet to authenticate with, so we fall back
+  // to the service-role client for that one case (still keyed off the real
+  // auth id, never anonymous).
+  const profileClient = data.session ? supabase : getSupabaseServerClient();
+  const { error: insertError } = await profileClient.from("profiles").insert({
     id: data.user.id,
     name,
-    email,
+    email: data.user.email ?? email,
     tier: "free",
   });
 
