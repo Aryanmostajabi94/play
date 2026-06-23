@@ -60,6 +60,14 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
   // Separately, a DB trigger (handle_new_user) auto-inserts a bare
   // {id, email} row into `profiles` on auth.users insert — that's fine
   // to leave running on its own; nothing in the app reads `profiles`.
+  // onConflict targets email, not id: email has a `unique` constraint on
+  // `users`, and a stale row can be left behind under the OLD auth id if
+  // someone deletes their auth.users row and signs up again with the
+  // same email (there's no FK/cascade between auth.users and public.users
+  // to clean that up automatically). Matching on email lets this upsert
+  // self-heal that case by overwriting the stale row's id with the
+  // current auth user's id, instead of hitting the unique-email
+  // constraint trying to insert a second row.
   const { error: insertError } = await getSupabaseServerClient().from("users").upsert(
     {
       id: data.user.id,
@@ -67,7 +75,7 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
       email: data.user.email ?? email,
       tier: "free",
     },
-    { onConflict: "id" },
+    { onConflict: "email" },
   );
 
   // Non-fatal: the auth user and confirmation email already exist by
