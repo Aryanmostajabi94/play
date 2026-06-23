@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 :root {
+  /* Night palette (default) — Play's original look. components/theme/
+     AutoTheme.tsx flips html[data-theme] between "day" and "night" based
+     on the visitor's local clock (6am-6pm = day); the override block
+     below swaps these same variable names for the day palette, so no
+     component needs to know which theme is active. */
   --bg-primary: #05050a;
   --accent-pink: #ff2d78;
   --accent-orange: #ff6b35;
@@ -21,6 +26,18 @@
   --radius-xl: 24px;
 }
 
+/* Day palette — warm/light instead of the nightlife-dark default. Same
+   accent hues (they already read fine on a light background, mostly
+   used as button fills with white text) so the brand stays recognizable;
+   only background/text flip for contrast. Set on <html> by the inline
+   boot script in app/layout.tsx (no flash on first paint) and kept in
+   sync afterwards by components/theme/AutoTheme.tsx. */
+:root[data-theme="day"] {
+  --bg-primary: #fff7ee;
+  --text-primary: #241a14;
+  --text-muted: rgba(36, 26, 20, 0.45);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -31,6 +48,7 @@ body {
   color: var(--text-primary);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.6s ease, color 0.6s ease;
 }
 
 .heading {

@@ -1,6 +1,20 @@
 import "../styles/globals.css";
 import type { Metadata } from "next";
 import { Bebas_Neue } from "next/font/google";
+import AutoTheme from "../components/theme/AutoTheme";
+
+// Sets html[data-theme] before first paint so there's no flash of the
+// wrong palette — must match the day/night boundary used by
+// components/theme/AutoTheme.tsx (6am-6pm local = day) exactly, or the
+// page would flicker once AutoTheme's effect runs on mount.
+const THEME_BOOT_SCRIPT = `
+(function () {
+  try {
+    var h = new Date().getHours();
+    document.documentElement.dataset.theme = (h >= 6 && h < 18) ? "day" : "night";
+  } catch (e) {}
+})();
+`;
 
 // Setup — Configure Tailwind + design tokens. Bebas Neue was referenced in
 // globals.css (.heading) but never actually loaded, so headings were
@@ -25,7 +39,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={bebasNeue.variable}>
-      <body>{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
+      <body>
+        <AutoTheme />
+        {children}
+      </body>
     </html>
   );
 }
