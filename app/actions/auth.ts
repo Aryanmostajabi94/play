@@ -46,28 +46,47 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
     return { success: false, error: error?.message ?? "Could not create your account." };
   }
 
-  // Insert the matching public.profiles row, keyed by the authenticated
-  // user's own id/email from auth.signUp — not re-derived from form input,
-  // so it can't drift from what Supabase Auth actually created.
+  // Upsert (not insert) the matching public.profiles row, keyed by the
+  // authenticated user's own id/email from auth.signUp — not re-derived
+  // from form input, so it can't drift from what Supabase Auth actually
+  // created.
+  //
+  // Upsert specifically because a DB trigger (handle_new_user, fired
+  // on_auth_user_created) already inserts a bare {id, email} row the
+  // moment auth.users gets the new user — before this code even runs. A
+  // plain .insert() here would hit that row's primary key and fail with a
+  // duplicate-key error on every signup. Upserting on id either fills in
+  // the trigger's row with `name` (the one field the trigger doesn't set)
+  // or creates the row outright if the trigger is ever disabled/removed.
   //
   // Client choice matters for RLS: when no email confirmation is required,
   // `supabase` (the route client) already holds the new session set during
-  // signUp above, so this insert runs as that authenticated user and is
-  // governed by a normal "insert own row" RLS policy (auth.uid() = id) —
-  // not the anonymous/anon-key role. Only when email confirmation IS
-  // required is there no session yet to authenticate with, so we fall back
-  // to the service-role client for that one case (still keyed off the real
-  // auth id, never anonymous).
+  // signUp above, so this write runs as that authenticated user and is
+  // governed by normal "own row" RLS policies (auth.uid() = id) — not the
+  // anonymous/anon-key role. Only when email confirmation IS required is
+  // there no session yet to authenticate with, so we fall back to the
+  // service-role client for that one case (still keyed off the real auth
+  // id, never anonymous).
   const profileClient = data.session ? supabase : getSupabaseServerClient();
-  const { error: insertError } = await profileClient.from("profiles").insert({
-    id: data.user.id,
-    name,
-    email: data.user.email ?? email,
-    tier: "free",
-  });
+  const { error: insertError } = await profileClient.from("profiles").upsert(
+    {
+      id: data.user.id,
+      name,
+      email: data.user.email ?? email,
+      tier: "free",
+    },
+    { onConflict: "id" },
+  );
 
+  // Non-fatal: the auth user and confirmation email already exist, and
+  // the handle_new_user trigger already guarantees a bare {id, email}
+  // profiles row regardless of what happens here. Failing the whole
+  // signup over this would falsely tell a successfully-registered user
+  // their account didn't work, and would also hide the "check your
+  // email" step below. Log it server-side (check Vercel's function logs
+  // for the real Postgres error) instead of blocking the user on it.
   if (insertError) {
-    return { success: false, error: "Account created but profile setup failed. Contact support." };
+    console.error("signUpAction: profiles upsert failed (non-fatal):", insertError);
   }
 
   // No session means the Supabase project requires email confirmation —
