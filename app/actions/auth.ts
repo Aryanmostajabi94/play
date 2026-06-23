@@ -77,7 +77,12 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
   // (check Vercel's function logs for the real Postgres error) instead
   // of blocking the user on it.
   if (insertError) {
-    console.error("signUpAction: users upsert failed (non-fatal):", insertError);
+    // Short, front-loaded message: Vercel's runtime log table truncates
+    // long messages, so the useful bit (code + message) needs to be
+    // first, not buried after a long static prefix.
+    console.error(
+      `UPSERT_FAIL ${insertError.code ?? "?"} ${insertError.message ?? "?"} ${insertError.details ?? ""}`,
+    );
   }
 
   // No session means the Supabase project requires email confirmation —
