@@ -91,6 +91,10 @@ export interface BookingVenueSummary {
   price_display: string | null;
   accent_color: string;
   cover_image: string | null;
+  // Not snapshotted on the booking row (only cancellation_policy and
+  // cancellation_window_hrs are) — C9 Cancel Booking Screen reads the
+  // venue's current fee at cancel time.
+  cancellation_fee_per_person: number;
 }
 
 export interface BookingWithVenue extends Booking {

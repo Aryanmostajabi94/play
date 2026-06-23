@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { TEMP_USER_ID } from "../../lib/bookings";
+import { requireUserId } from "../../lib/auth";
 import {
   updateNotificationPreferences,
   type NotificationPreferencesUpdate,
@@ -11,7 +11,8 @@ import {
 export async function saveNotificationPreferences(
   updates: NotificationPreferencesUpdate,
 ): Promise<{ success: boolean; error?: string }> {
-  const result = await updateNotificationPreferences(TEMP_USER_ID, updates);
+  const userId = await requireUserId();
+  const result = await updateNotificationPreferences(userId, updates);
 
   if (result.success) {
     revalidatePath("/settings/notifications");

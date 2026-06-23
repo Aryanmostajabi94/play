@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "../../lib/supabaseServer";
-import { TEMP_USER_ID } from "../../lib/bookings";
+import { requireUserId } from "../../lib/auth";
 import { LARGE_GROUP_THRESHOLD } from "../../types/database";
 import type { NotificationChannel } from "../../types/database";
 
@@ -38,6 +38,11 @@ export async function createBooking(
   if (!input.notificationChannels?.length) {
     return { success: false, error: "Pick at least one notification preference." };
   }
+
+  // A3/A4 — booking on someone's behalf now requires knowing who they
+  // actually are; redirects to /sign-in (with a return path) rather than
+  // silently attributing the booking to TEMP_USER_ID.
+  const userId = await requireUserId(`/sign-in?next=/book`);
 
   const supabase = getSupabaseServerClient();
 
@@ -80,7 +85,7 @@ export async function createBooking(
   const { data: booking, error: insertError } = await supabase
     .from("bookings")
     .insert({
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       venue_id: input.venueId,
       status,
       booking_type: bookingType,
@@ -121,6 +126,7 @@ export async function cancelBooking(
   bookingId: string,
   reason?: string,
 ): Promise<CancelBookingResult> {
+  const userId = await requireUserId();
   const supabase = getSupabaseServerClient();
 
   const { error } = await supabase
@@ -132,7 +138,7 @@ export async function cancelBooking(
       cancellation_reason: reason || null,
     })
     .eq("id", bookingId)
-    .eq("user_id", TEMP_USER_ID)
+    .eq("user_id", userId)
     .in("status", ["pending", "confirmed"]);
 
   if (error) {

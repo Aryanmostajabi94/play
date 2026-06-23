@@ -1,5 +1,4 @@
 import { getSupabaseServerClient } from "./supabaseServer";
-import { TEMP_USER_ID } from "./bookings";
 import type { NotificationPreferences } from "../types/database";
 
 // Defaults mirror the column defaults in
@@ -17,9 +16,7 @@ const DEFAULT_PREFERENCES: Omit<NotificationPreferences, "user_id" | "updated_at
 
 // E1 Notification Preferences — read the user's row, or fall back to
 // schema defaults if one doesn't exist yet (no real signup flow has run).
-export async function getNotificationPreferences(
-  userId: string = TEMP_USER_ID,
-): Promise<NotificationPreferences> {
+export async function getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase

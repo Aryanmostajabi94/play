@@ -1,4 +1,5 @@
 import { getNotificationPreferences } from "../../../../lib/notificationPreferences";
+import { requireUserId } from "../../../../lib/auth";
 import NotificationPreferencesForm from "../../../../components/settings/NotificationPreferencesForm";
 
 // Screen E1 — Notification Preferences.
@@ -6,7 +7,8 @@ import NotificationPreferencesForm from "../../../../components/settings/Notific
 // reminder timing." Also covers the weekly-picks / Elite-drop digest
 // toggles backed by the same notification_preferences table.
 export default async function NotificationPreferencesPage() {
-  const preferences = await getNotificationPreferences();
+  const userId = await requireUserId("/sign-in?next=/settings/notifications");
+  const preferences = await getNotificationPreferences(userId);
 
   return (
     <main style={{ maxWidth: 560, margin: "0 auto", padding: "40px 20px" }}>

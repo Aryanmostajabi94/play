@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { DiscoverVenue, VenueCategory } from "../../types/database";
+import VenueDetailModal from "../venue/VenueDetailModal";
 
 // B1 — Home / Discover.
 // Per Screen Inventory v1.0: "hero carousel, AI search bar, category
@@ -35,6 +36,10 @@ const VIEWER_TIER: "free" | "insider" | "elite" = "free";
 export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
   const [category, setCategory] = useState<"all" | VenueCategory>("all");
   const [search, setSearch] = useState("");
+  // B4 — Venue Detail Modal. Clicking a card's image/info area opens the
+  // full detail view; the card's own "Book now" pill stays a direct link
+  // into the booking engine for users who want to skip straight there.
+  const [selected, setSelected] = useState<DiscoverVenue | null>(null);
 
   const areas = useMemo(
     () => Array.from(new Set(venues.map((v) => v.area))).sort(),
@@ -248,9 +253,14 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                   overflow: "hidden",
                 }}
               >
-                <Link
-                  href={locked ? "/upgrade/checkout" : `/book/${v.slug}`}
-                  style={{ display: "block", textDecoration: "none", color: "inherit" }}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelected(v)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSelected(v);
+                  }}
+                  style={{ display: "block", textDecoration: "none", color: "inherit", cursor: "pointer" }}
                 >
                   <div style={{ position: "relative", height: 190 }}>
                     {v.cover_image && (
@@ -362,9 +372,14 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                         ))}
                       </div>
                     )}
-                    <div
+                  </div>
+                  <div style={{ padding: "0 16px 16px" }}>
+                    <Link
+                      href={locked ? "/upgrade/checkout" : `/book/${v.slug}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="btn"
                       style={{
+                        display: "block",
                         width: "100%",
                         background: locked
                           ? "rgba(255,184,0,0.1)"
@@ -376,16 +391,25 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                         fontSize: 12,
                         fontWeight: 700,
                         textAlign: "center",
+                        textDecoration: "none",
                       }}
                     >
                       {locked ? "👑 Unlock to Book" : "Book now →"}
-                    </div>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {selected && (
+        <VenueDetailModal
+          venue={selected}
+          locked={!canView(selected)}
+          onClose={() => setSelected(null)}
+        />
       )}
     </div>
   );

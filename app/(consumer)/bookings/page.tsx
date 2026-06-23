@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBookingsForUser } from "../../../lib/bookings";
+import { requireUserId } from "../../../lib/auth";
 import StatusBadge from "../../../components/booking/StatusBadge";
 
 // Screen C7 — Booking History.
@@ -9,7 +10,8 @@ import StatusBadge from "../../../components/booking/StatusBadge";
 // MVP-only), so this is a standalone route at /bookings for now and can be
 // nested under /profile once that screen is built.
 export default async function BookingHistoryPage() {
-  const bookings = await getBookingsForUser();
+  const userId = await requireUserId("/sign-in?next=/bookings");
+  const bookings = await getBookingsForUser(userId);
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "40px 20px" }}>

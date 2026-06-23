@@ -14,7 +14,7 @@ const BOOKING_WITH_VENUE_SELECT = `
   occasion, special_requests, notification_channels, cancellation_policy,
   cancellation_window_hrs, confirmation_deadline, confirmed_at, declined_at,
   cancelled_at, cancellation_reason, cancelled_by, user_tier_at_booking, created_at,
-  venue:venues ( name, area, price_display, accent_color, cover_image )
+  venue:venues ( name, area, price_display, accent_color, cover_image, cancellation_fee_per_person )
 `;
 
 // Server-only: used by the booking-status screens (Instant Confirm /
@@ -45,9 +45,7 @@ export async function getBookingById(id: string): Promise<BookingWithVenue | nul
 // C7 Booking History — all of a user's past and upcoming bookings, most
 // recent date first. Per Screen Inventory v1.0 ("List of all past and
 // upcoming bookings with status badges").
-export async function getBookingsForUser(
-  userId: string = TEMP_USER_ID,
-): Promise<BookingWithVenue[]> {
+export async function getBookingsForUser(userId: string): Promise<BookingWithVenue[]> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase

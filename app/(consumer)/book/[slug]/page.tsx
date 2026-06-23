@@ -1,4 +1,5 @@
 import { getVenueBySlug } from "../../../../lib/venues";
+import { requireUserId } from "../../../../lib/auth";
 import BookingForm from "../../../../components/booking/BookingForm";
 
 export default async function BookPage({
@@ -6,6 +7,7 @@ export default async function BookPage({
 }: {
   params: { slug: string };
 }) {
+  await requireUserId(`/sign-in?next=/book/${params.slug}`);
   const venue = await getVenueBySlug(params.slug);
 
   if (!venue) {

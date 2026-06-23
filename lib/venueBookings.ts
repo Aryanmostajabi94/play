@@ -84,6 +84,34 @@ export async function getUpcomingBookings(
   return (data ?? []).map(toVenueBookingRow);
 }
 
+// F4 Booking History — every past-state booking (completed, cancelled by
+// either party, declined, expired), most recent first. Per Screen
+// Inventory v1.0: "All past bookings — completed, cancelled, declined,
+// expired." No date-range cap (unlike F3's 14-day window) since this is
+// meant to be the full record; capped to the most recent 100 to keep the
+// query bounded.
+export async function getBookingHistory(
+  venueId: string = TEMP_VENUE_ID,
+): Promise<VenueBookingRow[]> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(BOOKING_ROW_SELECT)
+    .eq("venue_id", venueId)
+    .in("status", ["completed", "cancelled_by_user", "cancelled_by_venue", "declined", "expired"])
+    .order("date", { ascending: false })
+    .order("time_slot", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("getBookingHistory error:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map(toVenueBookingRow);
+}
+
 // F1 Venue Dashboard Home — today's bookings, pending count, week summary.
 // Wrapped in React's cache() so the shared (venue) layout and the
 // dashboard page (both calling this per request) hit Supabase once, not
