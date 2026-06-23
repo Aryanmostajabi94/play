@@ -53,37 +53,47 @@ export default function SignInForm({ providerError }: { providerError?: string }
   const notConfiguredLabel = providerError ? PROVIDER_LABEL[providerError] : undefined;
 
   return (
-    <form action={handleSubmit}>
-      <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-      <input name="password" type="password" placeholder="Password" required className="input-el" style={{ marginBottom: 18 }} />
+    <div>
+      <form action={handleSubmit}>
+        <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
+        <input name="password" type="password" placeholder="Password" required className="input-el" style={{ marginBottom: 18 }} />
 
-      {notConfiguredLabel && (
-        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-          {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
-        </div>
-      )}
-      {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
+        {notConfiguredLabel && (
+          <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
+            {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
+          </div>
+        )}
+        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn"
-        style={{
-          width: "100%",
-          padding: "13px",
-          borderRadius: 12,
-          background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14,
-          border: "none",
-          opacity: pending ? 0.6 : 1,
-          marginBottom: 18,
-        }}
-      >
-        {pending ? "Signing in..." : "Sign in"}
-      </button>
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn"
+          style={{
+            width: "100%",
+            padding: "13px",
+            borderRadius: 12,
+            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 14,
+            border: "none",
+            opacity: pending ? 0.6 : 1,
+            marginBottom: 18,
+          }}
+        >
+          {pending ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
 
+      {/* These were previously nested inside the form above. The HTML
+          parser silently drops a <form> start tag encountered while
+          already inside another form, so each "Continue with ..."
+          button was actually being attached to the outer email/password
+          form instead of its own OAuth action — clicking it tried to
+          submit the (empty, required) email/password fields, which the
+          browser blocks with no visible feedback. Siblings of the main
+          form, not children, fixes that. */}
       <form action={signInWithGoogleAction}>
         <button type="submit" className="btn" style={oauthButtonStyle}>
           Continue with Google
@@ -108,6 +118,6 @@ export default function SignInForm({ providerError }: { providerError?: string }
           Create an account
         </Link>
       </div>
-    </form>
+    </div>
   );
 }
