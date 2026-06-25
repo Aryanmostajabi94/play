@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signUpAction } from "../../app/actions/auth";
+import {
+  signUpAction,
+  signInWithGoogleAction,
+  signInWithAppleAction,
+  signInWithFacebookAction,
+} from "../../app/actions/auth";
 
 const PLANS = [
   { id: "free", label: "Explorer", price: "Free", desc: "Browse + book open venues" },
@@ -10,16 +15,50 @@ const PLANS = [
   { id: "elite", label: "Elite", price: "from $49/mo", desc: "Full access, priority requests" },
 ] as const;
 
+const PROVIDER_LABEL: Record<string, string> = {
+  google_not_configured: "Google",
+  apple_not_configured: "Apple",
+  facebook_not_configured: "Facebook",
+};
+
+const oauthButtonStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "13px",
+  borderRadius: 12,
+  background: "transparent",
+  border: "1px solid rgba(255,255,255,0.12)",
+  color: "var(--text-primary)",
+  fontWeight: 700,
+  fontSize: 14,
+  marginBottom: 10,
+};
+
 // A3 — Sign Up, with A5 (Choose Plan) folded in as a single step rather
 // than a separate screen-to-screen hop, since the only thing A5 needs is
 // which tier to hand off to D1 checkout with. Free stays in-app; Insider
 // / Elite redirect into the existing /upgrade/checkout flow right after
 // account creation.
-export default function SignUpForm() {
+//
+// Google/Apple/Facebook buttons mirror SignInForm — same actions
+// (signInWithOAuth creates a new auth user the first time it sees that
+// account, same as a plain sign-in), since there's no separate "sign up"
+// vs "sign in" concept on Supabase's OAuth side. The forms here are
+// siblings of the main one rather than nested inside it for the same
+// reason as SignInForm: a nested <form> tag gets silently dropped by
+// the HTML parser, so the button would otherwise attach to (and try to
+// submit) the email/password form instead of its own action.
+export default function SignUpForm({ providerError }: { providerError?: string }) {
   const [plan, setPlan] = useState<"free" | "insider" | "elite">("free");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  // signUpAction surfaces Supabase's own error text verbatim — for a
+  // duplicate email that's "User already registered" — so this is a
+  // string match rather than a separate flag on AuthActionResult. A
+  // dedicated modal (instead of the usual inline red text) since the
+  // useful next step here isn't "fix a typo and resubmit", it's "go sign
+  // in instead", which deserves a more direct nudge.
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -28,7 +67,11 @@ export default function SignUpForm() {
     const res = await signUpAction(formData);
     setPending(false);
     if (!res.success) {
-      setError(res.error ?? "Something went wrong.");
+      if (res.error?.toLowerCase().includes("already registered")) {
+        setShowDuplicateModal(true);
+      } else {
+        setError(res.error ?? "Something went wrong.");
+      }
       return;
     }
     if (res.needsEmailConfirmation) {
@@ -47,8 +90,81 @@ export default function SignUpForm() {
     );
   }
 
+  const notConfiguredLabel = providerError ? PROVIDER_LABEL[providerError] : undefined;
+
   return (
-    <form action={handleSubmit}>
+    <div>
+      {showDuplicateModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: 20,
+          }}
+          onClick={() => setShowDuplicateModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "var(--bg-primary)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 16,
+              padding: 28,
+              maxWidth: 360,
+              width: "100%",
+              textAlign: "center",
+            }}
+          >
+            <div className="heading" style={{ fontSize: 20, marginBottom: 10 }}>
+              Account already exists
+            </div>
+            <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 22, lineHeight: 1.5 }}>
+              There's already an account with this email. Sign in instead to continue.
+            </div>
+            <Link
+              href="/sign-in"
+              className="btn"
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "12px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 14,
+                textDecoration: "none",
+                marginBottom: 10,
+              }}
+            >
+              Go to sign in
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowDuplicateModal(false)}
+              className="btn"
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 12,
+                background: "transparent",
+                border: "none",
+                color: "var(--text-muted)",
+                fontSize: 13,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form action={handleSubmit}>
       <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
       <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
       <input
@@ -86,6 +202,11 @@ export default function SignUpForm() {
         ))}
       </div>
 
+      {notConfiguredLabel && (
+        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
+          {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
+        </div>
+      )}
       {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
       <button
@@ -106,6 +227,36 @@ export default function SignUpForm() {
       >
         {pending ? "Creating account..." : "Create account"}
       </button>
+      </form>
+
+      {/* Same actions as SignInForm — Supabase OAuth has no separate
+          "sign up" step, signInWithOAuth creates the account the first
+          time it sees that provider identity. Plan selection above only
+          applies to the email/password path; OAuth accounts start on
+          the free tier and can upgrade afterward via /upgrade/checkout,
+          same as anyone else. Siblings of the form above, not nested
+          inside it, for the same HTML-parser reason as SignInForm. */}
+      <div style={{ margin: "18px 0 10px", fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
+        or sign up with
+      </div>
+
+      <form action={signInWithGoogleAction}>
+        <button type="submit" className="btn" style={oauthButtonStyle}>
+          Continue with Google
+        </button>
+      </form>
+
+      <form action={signInWithAppleAction}>
+        <button type="submit" className="btn" style={oauthButtonStyle}>
+          Continue with Apple
+        </button>
+      </form>
+
+      <form action={signInWithFacebookAction}>
+        <button type="submit" className="btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+          Continue with Facebook
+        </button>
+      </form>
 
       <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
         Already have an account?{" "}
@@ -113,6 +264,6 @@ export default function SignUpForm() {
           Sign in
         </Link>
       </div>
-    </form>
+    </div>
   );
 }
