@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "../../lib/auth";
 import { signOutAction } from "../../app/actions/auth";
+import HeaderNav from "./HeaderNav";
 
 // Shared top nav for the consumer app — previously only Home (app/page.tsx)
 // had a header at all, hand-rolled inline; every other consumer page
@@ -61,48 +62,25 @@ export default async function SiteHeader() {
         >
           PLAY
         </Link>
-        <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        {user ? (
-          <>
-            <Link
-              href="/notifications"
-              style={{ fontSize: 20, textDecoration: "none" }}
-              aria-label="Notifications"
-            >
-              🔔
-            </Link>
-            <Link
-              href="/bookings"
-              style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}
-            >
-              My bookings
-            </Link>
+
+        {/* Right side: Discover/Map/Saved/Membership nav + notification
+            bell + auth action — matching the reference header layout (logo
+            left, icon-over-label nav + bell + sign-in on the right) rather
+            than the old single row of plain text links. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <HeaderNav />
+
+          <Link
+            href="/notifications"
+            style={{ fontSize: 18, textDecoration: "none", color: "var(--text-muted)" }}
+            aria-label="Notifications"
+          >
+            🔔
+          </Link>
+
+          {user ? (
             <Link
               href="/profile"
-              style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}
-            >
-              Profile
-            </Link>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="btn"
-                style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer" }}
-              >
-                Sign out
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <Link
-              href="/sign-in"
-              style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/sign-up"
               style={{
                 fontSize: 13,
                 fontWeight: 700,
@@ -113,17 +91,47 @@ export default async function SiteHeader() {
                 background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
               }}
             >
-              Sign up
+              Profile
             </Link>
-          </>
-        )}
+          ) : (
+            <Link
+              href="/sign-in"
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#fff",
+                textDecoration: "none",
+                padding: "8px 16px",
+                borderRadius: 10,
+                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+              }}
+            >
+              Sign In
+            </Link>
+          )}
+
+          {/* Sign out + "List your venue" kept, just de-emphasized — not
+              in the reference layout, but dropping them would lose
+              existing functionality (signing out, the venue-claim
+              flow) rather than just restyling the header. */}
+          {user && (
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="btn"
+                style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, cursor: "pointer" }}
+              >
+                Sign out
+              </button>
+            </form>
+          )}
           <Link
             href="/claim"
-            style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}
+            style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}
           >
             List your venue
           </Link>
-        </nav>
+        </div>
       </div>
     </header>
   );
