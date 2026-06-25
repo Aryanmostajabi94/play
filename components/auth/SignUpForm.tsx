@@ -164,111 +164,121 @@ export default function SignUpForm({ providerError }: { providerError?: string }
         </div>
       )}
 
-      {/* Moved up top — the OAuth path is the fastest way in for most
-          people, and burying it below a 3-input form + plan picker meant
-          it was effectively invisible without scrolling. Same actions as
-          SignInForm — Supabase OAuth has no separate "sign up" step,
-          signInWithOAuth creates the account the first time it sees that
-          provider identity. Plan selection below only applies to the
-          email/password path; OAuth accounts start on the free tier and
-          can upgrade afterward via /upgrade/checkout, same as anyone
-          else. Siblings of the email form below, not nested inside it,
-          for the same HTML-parser reason as SignInForm. */}
-      {notConfiguredLabel && (
-        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-          {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
-        </div>
-      )}
+      {/* Two columns: sign-up method on the left, plan picker on the
+          right — previously the plan picker was just stacked inside the
+          email form, pushing it (and the submit button) further down a
+          single long column. flex-wrap with a min-width on each column
+          means this still stacks to one column on narrow/mobile
+          viewports without needing a separate media query. */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 32 }}>
+        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+          {notConfiguredLabel && (
+            <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
+              {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
+            </div>
+          )}
 
-      <form action={signInWithGoogleAction}>
-        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-          <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
-        </button>
-      </form>
+          {/* OAuth path is the fastest way in for most people. Same
+              actions as SignInForm — Supabase OAuth has no separate
+              "sign up" step, signInWithOAuth creates the account the
+              first time it sees that provider identity. OAuth accounts
+              start on the free tier and can upgrade afterward via
+              /upgrade/checkout, same as anyone else picking a paid plan
+              here. Siblings of the email form below, not nested inside
+              it, for the same HTML-parser reason as SignInForm. */}
+          <form action={signInWithGoogleAction}>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+              <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
+            </button>
+          </form>
 
-      <form action={signInWithAppleAction}>
-        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-          <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
-        </button>
-      </form>
+          <form action={signInWithAppleAction}>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+              <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
+            </button>
+          </form>
 
-      <form action={signInWithFacebookAction}>
-        <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
-          <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
-        </button>
-      </form>
+          <form action={signInWithFacebookAction}>
+            <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+              <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
+            </button>
+          </form>
 
-      <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
-        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-      </div>
+          <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
+            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+          </div>
 
-      <form action={handleSubmit}>
-        <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
-        <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password (min. 8 characters)"
-          required
-          minLength={8}
-          className="input-el"
-          style={{ marginBottom: 18 }}
-        />
+          <form action={handleSubmit}>
+            <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
+            <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
+            <input
+              name="password"
+              type="password"
+              placeholder="Password (min. 8 characters)"
+              required
+              minLength={8}
+              className="input-el"
+              style={{ marginBottom: 18 }}
+            />
 
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
-          {PLANS.map((p) => (
+            {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
+
             <button
-              key={p.id}
-              type="button"
-              onClick={() => setPlan(p.id)}
+              type="submit"
+              disabled={pending}
               className="btn"
               style={{
-                textAlign: "left",
-                padding: "12px 14px",
-                borderRadius: 14,
-                background: plan === p.id ? "rgba(255,45,120,0.12)" : "var(--surface)",
-                border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "var(--border-soft)"}`,
+                width: "100%",
+                padding: "13px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 14,
+                border: "none",
+                opacity: pending ? 0.6 : 1,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
-                <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
+              {pending ? "Creating account..." : "Create account"}
             </button>
-          ))}
+          </form>
+
+          <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
+            Already have an account?{" "}
+            <Link href="/sign-in" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
+              Sign in
+            </Link>
+          </div>
         </div>
 
-        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="btn"
-          style={{
-            width: "100%",
-            padding: "13px",
-            borderRadius: 12,
-            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 14,
-            border: "none",
-            opacity: pending ? 0.6 : 1,
-          }}
-        >
-          {pending ? "Creating account..." : "Create account"}
-        </button>
-      </form>
-
-      <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
-        Already have an account?{" "}
-        <Link href="/sign-in" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
-          Sign in
-        </Link>
+        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {PLANS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlan(p.id)}
+                className="btn"
+                style={{
+                  textAlign: "left",
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: plan === p.id ? "rgba(255,45,120,0.12)" : "var(--surface)",
+                  border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "var(--border-soft)"}`,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
+                  <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

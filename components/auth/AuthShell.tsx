@@ -12,15 +12,20 @@ export default function AuthShell({
   title,
   subtitle,
   children,
+  maxWidth = 440,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  // Sign Up's two-column layout (OAuth + email form / plan picker) needs
+  // more room than Sign In's single column — overridable per page
+  // instead of hardcoding one width for both.
+  maxWidth?: number;
 }) {
   return (
     <main
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 73px)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -28,7 +33,7 @@ export default function AuthShell({
         padding: "40px 20px",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 440 }}>
+      <div style={{ width: "100%", maxWidth }}>
         <Link
           href="/"
           style={{
