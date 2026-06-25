@@ -169,3 +169,42 @@ input[type="date"].input-el {
     transform: scale(1.4);
   }
 }
+
+/* Ticker bar — ported from Play_V11.jsx's ".ticker-inner" scrolling strip
+   above the header (live stats / drops). Duplicating the content once and
+   sliding by -50% gives a seamless infinite loop without JS. */
+.play-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.play-ticker-inner {
+  display: inline-block;
+  animation: play-ticker-scroll 35s linear infinite;
+}
+
+@keyframes play-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* BottomNav (components/layout/BottomNav.tsx) — mobile-only bar matching
+   Play_V11.jsx's bottom tab nav, which exists alongside its top header
+   nav rather than instead of it. */
+@media (min-width: 720px) {
+  .play-bottom-nav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 719px) {
+  .play-bottom-nav-spacer {
+    display: block !important;
+  }
+}

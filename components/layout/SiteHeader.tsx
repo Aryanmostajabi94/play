@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "../../lib/auth";
 import { signOutAction } from "../../app/actions/auth";
 import HeaderNav from "./HeaderNav";
+import TickerBar from "./TickerBar";
 
 // Shared top nav for the consumer app — previously only Home (app/page.tsx)
 // had a header at all, hand-rolled inline; every other consumer page
@@ -17,11 +18,10 @@ export default async function SiteHeader() {
   const user = await getCurrentUser();
 
   return (
+    <div style={{ position: "sticky", top: 0, zIndex: 100 }}>
+      <TickerBar />
     <header
       style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
         // Translucent + blurred rather than a flat fill — matches
         // Play_V11.jsx's header (rgba bg-primary + backdrop-filter blur),
         // so content scrolling underneath shows through softly instead of
@@ -134,5 +134,6 @@ export default async function SiteHeader() {
         </div>
       </div>
     </header>
+    </div>
   );
 }

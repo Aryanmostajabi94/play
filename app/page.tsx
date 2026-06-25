@@ -1,6 +1,7 @@
 import { listLiveVenues } from "../lib/venues";
 import HomeDiscover from "../components/home/HomeDiscover";
 import SiteHeader from "../components/layout/SiteHeader";
+import BottomNav from "../components/layout/BottomNav";
 
 // Screen B1 — Home / Discover. Per Screen Inventory v1.0: "hero carousel,
 // AI search bar, category filters, venue grid." Replaces the placeholder
@@ -21,6 +22,8 @@ export default async function Home() {
       <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 80px" }}>
         <HomeDiscover venues={venues} />
       </main>
+      <div className="play-bottom-nav-spacer" style={{ display: "none", height: 64 }} />
+      <BottomNav />
     </>
   );
 }

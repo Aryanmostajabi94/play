@@ -122,7 +122,11 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
             </span>
           </div>
 
-          <div className="heading" style={{ fontSize: 56, lineHeight: 0.95, marginBottom: 14 }}>
+          {/* clamp() instead of a flat 80px — V11's hero type is 80px on
+              desktop, but pinning that on a 420-wide mobile viewport
+              would overflow the card; clamp keeps the same V11 size at
+              normal widths and only shrinks where it has to. */}
+          <div className="heading" style={{ fontSize: "clamp(40px, 9vw, 80px)", lineHeight: 0.95, marginBottom: 14 }}>
             <span style={{ color: "var(--text-primary)" }}>YOUR CITY.</span>
             <br />
             <span
@@ -139,14 +143,74 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
             Browse Dubai's best beach clubs, restaurants and nightlife — book in seconds.
           </div>
 
-          <div style={{ width: "100%", maxWidth: 560 }}>
+          {/* Search bar styled to match V11's "Ask AI ✦" box. Behavior is
+              still the plain client-side filter below (see top-of-file
+              note) — the actual AI concierge call needs a server action
+              wired to a real Anthropic key, which isn't in place yet, so
+              the button currently just focuses/no-ops rather than firing
+              a fake request. */}
+          <div style={{ width: "100%", maxWidth: 560, position: "relative" }}>
             <input
               className="input-el"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search venues or areas..."
-              style={{ textAlign: "center", padding: "16px 18px" }}
+              placeholder="✦ Ask AI or search venues, areas..."
+              style={{ textAlign: "center", padding: "16px 56px 16px 18px" }}
             />
+            <button
+              type="button"
+              className="btn"
+              title="Real AI concierge search is wired up but not switched on yet"
+              style={{
+                position: "absolute",
+                right: 6,
+                top: 6,
+                bottom: 6,
+                padding: "0 16px",
+                borderRadius: 10,
+                border: "none",
+                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+            >
+              Ask AI ✦
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 22 }}>
+            <Link
+              href="/upgrade"
+              className="btn"
+              style={{
+                textDecoration: "none",
+                padding: "11px 22px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, var(--accent-gold), var(--accent-orange))",
+                color: "#1a1206",
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              👑 Join Members
+            </Link>
+            <Link
+              href="/map"
+              className="btn"
+              style={{
+                textDecoration: "none",
+                padding: "11px 22px",
+                borderRadius: 12,
+                background: "var(--surface-strong)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--text-primary)",
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              🗺 Explore Map
+            </Link>
           </div>
         </div>
       </section>
@@ -375,6 +439,12 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                     )}
                   </div>
                   <div style={{ padding: "0 16px 16px" }}>
+                    {/* Green WhatsApp-style CTA — matches V11's
+                        "💬 WhatsApp to Book" card button. Still links into
+                        the real booking flow at /book/[slug] (not a raw
+                        wa.me deep link like V11's handleWA, which had no
+                        DB record at all) — only the color/copy is ported,
+                        not V11's fake booking mechanism. */}
                     <Link
                       href={locked ? "/upgrade/checkout" : `/book/${v.slug}`}
                       onClick={(e) => e.stopPropagation()}
@@ -384,7 +454,7 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                         width: "100%",
                         background: locked
                           ? "rgba(255,184,0,0.1)"
-                          : "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+                          : "linear-gradient(135deg, #22c55e, #16a34a)",
                         border: locked ? "1px solid rgba(255,184,0,0.3)" : "none",
                         color: "#fff",
                         borderRadius: 12,
@@ -395,7 +465,7 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
                         textDecoration: "none",
                       }}
                     >
-                      {locked ? "👑 Unlock to Book" : "Book now →"}
+                      {locked ? "👑 Unlock to Book" : "💬 WhatsApp to Book"}
                     </Link>
                   </div>
                 </div>

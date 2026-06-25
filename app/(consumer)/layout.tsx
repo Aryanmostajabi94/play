@@ -1,4 +1,5 @@
 import SiteHeader from "../../components/layout/SiteHeader";
+import BottomNav from "../../components/layout/BottomNav";
 
 // Wraps every page under app/(consumer)/ — profile, bookings, settings,
 // billing, notifications, etc. — with the same header Home already had.
@@ -10,6 +11,10 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
     <div style={{ minHeight: "100vh" }}>
       <SiteHeader />
       {children}
+      {/* Spacer so BottomNav (fixed, mobile-only) doesn't sit on top of
+          page content — only takes up space when the bar is visible. */}
+      <div className="play-bottom-nav-spacer" style={{ display: "none", height: 64 }} />
+      <BottomNav />
     </div>
   );
 }
