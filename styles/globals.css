@@ -16,6 +16,19 @@
   --text-primary: #f5f0ff;
   --text-muted: rgba(245, 240, 255, 0.4);
 
+  /* Surface/border tokens — for card backgrounds, input fills, and
+     hairline borders that need to sit on top of --bg-primary at low
+     opacity. These used to just be inline rgba(255,255,255,0.0X)
+     literals scattered across components (auth forms, plan pickers,
+     dividers), which look fine on the dark night background but are
+     nearly invisible on the light day background (white-on-near-white).
+     Centralizing them as theme-aware tokens — overridden in the day
+     block below — fixes that instead of patching each component. */
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-strong: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
   /* Radius tokens — match tailwind.config.js theme.extend.borderRadius
      so the same scale is available both as CSS vars (for inline styles,
      the convention used throughout this codebase) and as Tailwind
@@ -36,6 +49,10 @@
   --bg-primary: #fff7ee;
   --text-primary: #241a14;
   --text-muted: rgba(36, 26, 20, 0.45);
+  --surface: rgba(36, 26, 20, 0.04);
+  --surface-strong: rgba(36, 26, 20, 0.07);
+  --border-soft: rgba(36, 26, 20, 0.1);
+  --border-strong: rgba(36, 26, 20, 0.18);
 }
 
 * {
@@ -62,8 +79,8 @@ body {
   min-width: 0;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   padding: 11px 14px;
   color: var(--text-primary);
@@ -71,9 +88,22 @@ body {
   font-family: inherit;
 }
 
+.input-el::placeholder {
+  color: var(--text-muted);
+}
+
 .input-el:focus {
   outline: none;
   border-color: var(--accent-pink);
+}
+
+/* Card surface — used by AuthShell (and anywhere else that wants a
+   visibly-framed panel rather than content floating directly on
+   --bg-primary). Theme-aware via --surface/--border-soft above. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
 }
 
 /* iOS Safari renders <input type="date">'s internal value control only as
@@ -91,6 +121,10 @@ input[type="date"].input-el {
 
 .btn:active {
   transform: scale(0.98);
+}
+
+.oauth-btn:hover {
+  background: var(--surface) !important;
 }
 
 /* A1 Globe Intro animations — plain CSS, no WebGL/Three.js, so there's no

@@ -25,8 +25,8 @@ const oauthButtonStyle: React.CSSProperties = {
   width: "100%",
   padding: "13px",
   borderRadius: 12,
-  background: "transparent",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--surface)",
+  border: "1px solid var(--border-strong)",
   color: "var(--text-primary)",
   fontWeight: 700,
   fontSize: 14,
@@ -112,7 +112,7 @@ export default function SignUpForm({ providerError }: { providerError?: string }
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "var(--bg-primary)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              border: "1px solid var(--border-strong)",
               borderRadius: 16,
               padding: 28,
               maxWidth: 360,
@@ -181,27 +181,27 @@ export default function SignUpForm({ providerError }: { providerError?: string }
       )}
 
       <form action={signInWithGoogleAction}>
-        <button type="submit" className="btn" style={oauthButtonStyle}>
-          Continue with Google
+        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+          <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
         </button>
       </form>
 
       <form action={signInWithAppleAction}>
-        <button type="submit" className="btn" style={oauthButtonStyle}>
-          Continue with Apple
+        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+          <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
         </button>
       </form>
 
       <form action={signInWithFacebookAction}>
-        <button type="submit" className="btn" style={oauthButtonStyle}>
-          Continue with Facebook
+        <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+          <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
         </button>
       </form>
 
-      <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
       </div>
 
       <form action={handleSubmit}>
@@ -229,8 +229,8 @@ export default function SignUpForm({ providerError }: { providerError?: string }
                 textAlign: "left",
                 padding: "12px 14px",
                 borderRadius: 14,
-                background: plan === p.id ? "rgba(255,45,120,0.12)" : "rgba(255,255,255,0.03)",
-                border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "rgba(255,255,255,0.08)"}`,
+                background: plan === p.id ? "rgba(255,45,120,0.12)" : "var(--surface)",
+                border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "var(--border-soft)"}`,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>

@@ -16,7 +16,15 @@ export default async function SiteHeader() {
   const user = await getCurrentUser();
 
   return (
-    <header style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        background: "var(--bg-primary)",
+        borderBottom: "1px solid var(--border-soft)",
+      }}
+    >
       <div
         style={{
           display: "flex",

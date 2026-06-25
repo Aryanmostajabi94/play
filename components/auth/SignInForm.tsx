@@ -19,8 +19,8 @@ const oauthButtonStyle: React.CSSProperties = {
   width: "100%",
   padding: "13px",
   borderRadius: 12,
-  background: "transparent",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--surface)",
+  border: "1px solid var(--border-strong)",
   color: "var(--text-primary)",
   fontWeight: 700,
   fontSize: 14,
@@ -35,6 +35,13 @@ const oauthButtonStyle: React.CSSProperties = {
 // structurally identical to the Stripe-test-keys situation on D1. None
 // of the three are configured yet, so right now all three bounce back
 // here with an error banner instead of actually signing in.
+//
+// Layout mirrors SignUpForm — OAuth options first (fastest path in for
+// most people), divider, then email/password. Both forms also share the
+// same theme-aware tokens (--surface/--border-soft/--border-strong) so
+// they render correctly in both the dark "night" theme and the light
+// "day" theme — they used to hardcode white-rgba overlays, which were
+// nearly invisible on the light background.
 export default function SignInForm({ providerError }: { providerError?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -54,15 +61,44 @@ export default function SignInForm({ providerError }: { providerError?: string }
 
   return (
     <div>
+      {notConfiguredLabel && (
+        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
+          {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
+        </div>
+      )}
+
+      {/* Siblings of the email/password form below, not nested inside
+          it — a nested <form> tag gets silently dropped by the HTML
+          parser, so the button would otherwise attach to (and try to
+          submit) the email/password form instead of its own action. */}
+      <form action={signInWithGoogleAction}>
+        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+          <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
+        </button>
+      </form>
+
+      <form action={signInWithAppleAction}>
+        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+          <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
+        </button>
+      </form>
+
+      <form action={signInWithFacebookAction}>
+        <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+          <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
+        </button>
+      </form>
+
+      <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign in with email</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+      </div>
+
       <form action={handleSubmit}>
         <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
         <input name="password" type="password" placeholder="Password" required className="input-el" style={{ marginBottom: 18 }} />
 
-        {notConfiguredLabel && (
-          <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-            {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
-          </div>
-        )}
         {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
         <button
@@ -79,36 +115,9 @@ export default function SignInForm({ providerError }: { providerError?: string }
             fontSize: 14,
             border: "none",
             opacity: pending ? 0.6 : 1,
-            marginBottom: 18,
           }}
         >
           {pending ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-
-      {/* These were previously nested inside the form above. The HTML
-          parser silently drops a <form> start tag encountered while
-          already inside another form, so each "Continue with ..."
-          button was actually being attached to the outer email/password
-          form instead of its own OAuth action — clicking it tried to
-          submit the (empty, required) email/password fields, which the
-          browser blocks with no visible feedback. Siblings of the main
-          form, not children, fixes that. */}
-      <form action={signInWithGoogleAction}>
-        <button type="submit" className="btn" style={oauthButtonStyle}>
-          Continue with Google
-        </button>
-      </form>
-
-      <form action={signInWithAppleAction}>
-        <button type="submit" className="btn" style={oauthButtonStyle}>
-          Continue with Apple
-        </button>
-      </form>
-
-      <form action={signInWithFacebookAction}>
-        <button type="submit" className="btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
-          Continue with Facebook
         </button>
       </form>
 
