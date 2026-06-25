@@ -27,13 +27,37 @@ export default function CheckoutForm({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       <div style={{ display: "flex", gap: 12 }}>
+        {/* Free/Explorer reference card — matches Play_V11.jsx's 3-tier
+            comparison layout (Explorer/Insider/Elite) so paid plans show
+            what's already included for free, instead of floating with no
+            baseline. Display-only: clicking does nothing, same as V11's
+            "Browse Free" card which just dismisses the upgrade flow. */}
+        <div
+          className="card-hover"
+          style={{
+            flex: 1,
+            padding: 18,
+            borderRadius: 16,
+            border: "1px solid var(--border-soft)",
+            background: "var(--surface)",
+            opacity: 0.7,
+            cursor: "default",
+          }}
+        >
+          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Explorer</div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>Free</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "var(--text-muted)" }}>
+            <li>Browse all venues</li>
+            <li>Standard listings</li>
+          </ul>
+        </div>
         {PLAN_OPTIONS.map((p) => {
           const active = p.tier === tier;
           return (
             <div
               key={p.tier}
               onClick={() => setTier(p.tier)}
-              className="btn"
+              className="btn card-hover"
               style={{
                 flex: 1,
                 padding: 18,

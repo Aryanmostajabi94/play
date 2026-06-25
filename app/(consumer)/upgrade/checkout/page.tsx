@@ -18,12 +18,29 @@ export default function CheckoutPage({
       : undefined;
 
   return (
-    <main style={{ maxWidth: 560, margin: "0 auto", padding: "40px 20px" }}>
-      <div className="heading" style={{ fontSize: 30, marginBottom: 6 }}>
-        Upgrade your membership
-      </div>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 28 }}>
-        Unlock more of Dubai's best venues.
+    <main style={{ maxWidth: 620, margin: "0 auto", padding: "40px 20px" }}>
+      {/* Hero treatment ported from Play_V11.jsx's Membership screen
+          ("PLAY HARDER.") — purely visual, the plan/cycle/checkout logic
+          below is untouched. */}
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <div className="heading" style={{ fontSize: 44, lineHeight: 1, marginBottom: 10 }}>
+          <span style={{ color: "var(--text-primary)" }}>PLAY</span>
+          <span
+            style={{
+              background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange), var(--accent-gold))",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+            }}
+          >
+            {" "}
+            HARDER.
+          </span>
+        </div>
+        <div style={{ fontSize: 14, color: "var(--text-muted)", maxWidth: 380, margin: "0 auto", lineHeight: 1.6 }}>
+          Skip the queue. Get the table. Unlock Dubai's best venues.
+        </div>
       </div>
 
       <CheckoutForm initialTier={initialTier} />
