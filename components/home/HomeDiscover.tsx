@@ -246,9 +246,10 @@ export default function HomeDiscover({ venues }: { venues: DiscoverVenue[] }) {
             return (
               <div
                 key={v.id}
+                className="card-hover"
                 style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border-soft)",
                   borderRadius: 20,
                   overflow: "hidden",
                 }}

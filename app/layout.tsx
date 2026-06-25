@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import type { Metadata } from "next";
-import { Bebas_Neue } from "next/font/google";
+import { Bebas_Neue, DM_Sans } from "next/font/google";
 import AutoTheme from "../components/theme/AutoTheme";
 
 // Sets html[data-theme] before first paint so there's no flash of the
@@ -27,6 +27,19 @@ const bebasNeue = Bebas_Neue({
   display: "swap",
 });
 
+// Body font — the original Play_V11 prototype used DM Sans throughout
+// (loaded via @import in its own <style> block). The app had been falling
+// back to the system UI font stack instead, which is most of why it reads
+// as visually "different" from V11 despite already sharing the same accent
+// palette and Bebas Neue headings. Purely a typeface swap — no component
+// markup/logic changes.
+const dmSans = DM_Sans({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Play",
   description: "Book the best tables, beach clubs, and nightlife in Dubai.",
@@ -38,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={bebasNeue.variable}>
+    <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>

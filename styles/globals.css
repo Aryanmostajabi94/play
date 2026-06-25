@@ -64,7 +64,8 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   transition: background-color 0.6s ease, color 0.6s ease;
 }
 
@@ -104,6 +105,20 @@ body {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-xl);
+}
+
+/* Hover lift — ported from Play_V11.jsx's .card class (used there on
+   venue/listing tiles). Opt-in via .card-hover so AuthShell's static form
+   panel (which also uses .card) isn't affected — only elements that are
+   actually clickable/navigable should lift on hover. */
+.card-hover {
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 /* iOS Safari renders <input type="date">'s internal value control only as

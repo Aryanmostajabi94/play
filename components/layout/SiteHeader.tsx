@@ -21,7 +21,14 @@ export default async function SiteHeader() {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        background: "var(--bg-primary)",
+        // Translucent + blurred rather than a flat fill — matches
+        // Play_V11.jsx's header (rgba bg-primary + backdrop-filter blur),
+        // so content scrolling underneath shows through softly instead of
+        // the header reading as a separate solid bar.
+        background:
+          "color-mix(in srgb, var(--bg-primary) 92%, transparent)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
         borderBottom: "1px solid var(--border-soft)",
       }}
     >
@@ -35,7 +42,23 @@ export default async function SiteHeader() {
           margin: "0 auto",
         }}
       >
-        <Link href="/" className="heading" style={{ fontSize: 26, textDecoration: "none", color: "var(--text-primary)" }}>
+        <Link
+          href="/"
+          className="heading"
+          style={{
+            fontSize: 26,
+            textDecoration: "none",
+            // Gradient-clipped text instead of a flat color — matches the
+            // PLAY wordmark treatment in Play_V11.jsx (and the gradient
+            // already used on Sign up's CTA button), so the logo reads as
+            // the same brand mark across the prototype and this app.
+            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange), var(--accent-gold))",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            color: "transparent",
+          }}
+        >
           PLAY
         </Link>
         <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
