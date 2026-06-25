@@ -164,81 +164,21 @@ export default function SignUpForm({ providerError }: { providerError?: string }
         </div>
       )}
 
-      <form action={handleSubmit}>
-      <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
-      <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password (min. 8 characters)"
-        required
-        minLength={8}
-        className="input-el"
-        style={{ marginBottom: 18 }}
-      />
-
-      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
-        {PLANS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setPlan(p.id)}
-            className="btn"
-            style={{
-              textAlign: "left",
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: plan === p.id ? "rgba(255,45,120,0.12)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "rgba(255,255,255,0.08)"}`,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-              <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
-              <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
-          </button>
-        ))}
-      </div>
-
+      {/* Moved up top — the OAuth path is the fastest way in for most
+          people, and burying it below a 3-input form + plan picker meant
+          it was effectively invisible without scrolling. Same actions as
+          SignInForm — Supabase OAuth has no separate "sign up" step,
+          signInWithOAuth creates the account the first time it sees that
+          provider identity. Plan selection below only applies to the
+          email/password path; OAuth accounts start on the free tier and
+          can upgrade afterward via /upgrade/checkout, same as anyone
+          else. Siblings of the email form below, not nested inside it,
+          for the same HTML-parser reason as SignInForm. */}
       {notConfiguredLabel && (
         <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
           {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
         </div>
       )}
-      {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn"
-        style={{
-          width: "100%",
-          padding: "13px",
-          borderRadius: 12,
-          background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14,
-          border: "none",
-          opacity: pending ? 0.6 : 1,
-        }}
-      >
-        {pending ? "Creating account..." : "Create account"}
-      </button>
-      </form>
-
-      {/* Same actions as SignInForm — Supabase OAuth has no separate
-          "sign up" step, signInWithOAuth creates the account the first
-          time it sees that provider identity. Plan selection above only
-          applies to the email/password path; OAuth accounts start on
-          the free tier and can upgrade afterward via /upgrade/checkout,
-          same as anyone else. Siblings of the form above, not nested
-          inside it, for the same HTML-parser reason as SignInForm. */}
-      <div style={{ margin: "18px 0 10px", fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
-        or sign up with
-      </div>
 
       <form action={signInWithGoogleAction}>
         <button type="submit" className="btn" style={oauthButtonStyle}>
@@ -253,8 +193,74 @@ export default function SignUpForm({ providerError }: { providerError?: string }
       </form>
 
       <form action={signInWithFacebookAction}>
-        <button type="submit" className="btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+        <button type="submit" className="btn" style={oauthButtonStyle}>
           Continue with Facebook
+        </button>
+      </form>
+
+      <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
+        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+      </div>
+
+      <form action={handleSubmit}>
+        <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
+        <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password (min. 8 characters)"
+          required
+          minLength={8}
+          className="input-el"
+          style={{ marginBottom: 18 }}
+        />
+
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
+          {PLANS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setPlan(p.id)}
+              className="btn"
+              style={{
+                textAlign: "left",
+                padding: "12px 14px",
+                borderRadius: 14,
+                background: plan === p.id ? "rgba(255,45,120,0.12)" : "rgba(255,255,255,0.03)",
+                border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
+                <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
+            </button>
+          ))}
+        </div>
+
+        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn"
+          style={{
+            width: "100%",
+            padding: "13px",
+            borderRadius: 12,
+            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 14,
+            border: "none",
+            opacity: pending ? 0.6 : 1,
+          }}
+        >
+          {pending ? "Creating account..." : "Create account"}
         </button>
       </form>
 
