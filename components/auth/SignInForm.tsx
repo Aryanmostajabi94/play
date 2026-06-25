@@ -61,71 +61,81 @@ export default function SignInForm({ providerError }: { providerError?: string }
 
   return (
     <div>
-      {notConfiguredLabel && (
-        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-          {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
+      {/* Two columns, same pattern as SignUpForm's OAuth+plan-picker split
+          (see AuthShell's maxWidth comment) — OAuth on the left, email
+          on the right, so the whole form fits in one viewport instead of
+          one long scrolling column. flex-wrap + min-width still collapses
+          back to a single stacked column on narrow/mobile viewports. */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 32 }}>
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+          {notConfiguredLabel && (
+            <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
+              {notConfiguredLabel} sign-in isn't enabled yet — use email + password for now.
+            </div>
+          )}
+
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Continue with</div>
+
+          {/* Siblings of the email/password form on the right, not nested
+              inside it — a nested <form> tag gets silently dropped by the
+              HTML parser, so the button would otherwise attach to (and
+              try to submit) the email/password form instead of its own
+              action. */}
+          <form action={signInWithGoogleAction}>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+              <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
+            </button>
+          </form>
+
+          <form action={signInWithAppleAction}>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+              <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
+            </button>
+          </form>
+
+          <form action={signInWithFacebookAction}>
+            <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
+              <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
+            </button>
+          </form>
         </div>
-      )}
 
-      {/* Siblings of the email/password form below, not nested inside
-          it — a nested <form> tag gets silently dropped by the HTML
-          parser, so the button would otherwise attach to (and try to
-          submit) the email/password form instead of its own action. */}
-      <form action={signInWithGoogleAction}>
-        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-          <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
-        </button>
-      </form>
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Or sign in with email</div>
 
-      <form action={signInWithAppleAction}>
-        <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-          <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
-        </button>
-      </form>
+          <form action={handleSubmit}>
+            <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
+            <input name="password" type="password" placeholder="Password" required className="input-el" style={{ marginBottom: 18 }} />
 
-      <form action={signInWithFacebookAction}>
-        <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
-          <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
-        </button>
-      </form>
+            {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
-      <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign in with email</span>
-        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-      </div>
+            <button
+              type="submit"
+              disabled={pending}
+              className="btn"
+              style={{
+                width: "100%",
+                padding: "13px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 14,
+                border: "none",
+                opacity: pending ? 0.6 : 1,
+              }}
+            >
+              {pending ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
 
-      <form action={handleSubmit}>
-        <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-        <input name="password" type="password" placeholder="Password" required className="input-el" style={{ marginBottom: 18 }} />
-
-        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="btn"
-          style={{
-            width: "100%",
-            padding: "13px",
-            borderRadius: 12,
-            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 14,
-            border: "none",
-            opacity: pending ? 0.6 : 1,
-          }}
-        >
-          {pending ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-
-      <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
-        New to Play?{" "}
-        <Link href="/sign-up" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
-          Create an account
-        </Link>
+          <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
+            New to Play?{" "}
+            <Link href="/sign-up" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
+              Create an account
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
