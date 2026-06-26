@@ -13,6 +13,7 @@ export default function AuthShell({
   subtitle,
   children,
   maxWidth = 440,
+  activeTab,
 }: {
   title: string;
   subtitle?: string;
@@ -21,6 +22,12 @@ export default function AuthShell({
   // more room than Sign In's single column — overridable per page
   // instead of hardcoding one width for both.
   maxWidth?: number;
+  // Renders a Sign In / Create Account tab row above the title, per the
+  // tabbed-card look the user asked to match. These are plain links
+  // between the two real routes, not client-side tab state — /sign-in
+  // and /sign-up stay separate Next.js pages; clicking the inactive tab
+  // just navigates, same as the old "New to Play?" footer link did.
+  activeTab?: "sign-in" | "sign-up";
 }) {
   return (
     <main
@@ -48,6 +55,51 @@ export default function AuthShell({
         </Link>
 
         <div className="card" style={{ padding: "36px 32px" }}>
+          {activeTab && (
+            <div
+              style={{
+                display: "flex",
+                borderBottom: "1px solid var(--border-soft)",
+                marginBottom: 26,
+              }}
+            >
+              <Link
+                href="/sign-in"
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  paddingBottom: 14,
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: activeTab === "sign-in" ? "var(--text-primary)" : "var(--text-muted)",
+                  borderBottom:
+                    activeTab === "sign-in" ? "2px solid var(--accent-orange)" : "2px solid transparent",
+                  marginBottom: -1,
+                }}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  paddingBottom: 14,
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: activeTab === "sign-up" ? "var(--text-primary)" : "var(--text-muted)",
+                  borderBottom:
+                    activeTab === "sign-up" ? "2px solid var(--accent-orange)" : "2px solid transparent",
+                  marginBottom: -1,
+                }}
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
+
           <div className="heading" style={{ fontSize: 28 }}>
             {title}
           </div>
