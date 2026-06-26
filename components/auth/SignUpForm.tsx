@@ -9,12 +9,6 @@ import {
   signInWithFacebookAction,
 } from "../../app/actions/auth";
 
-const PLANS = [
-  { id: "free", label: "Explorer", price: "Free", desc: "Browse + book open venues" },
-  { id: "insider", label: "Insider", price: "from $19/mo", desc: "Unlock Insider-only venues" },
-  { id: "elite", label: "Elite", price: "from $49/mo", desc: "Full access, priority requests" },
-] as const;
-
 const PROVIDER_LABEL: Record<string, string> = {
   google_not_configured: "Google",
   apple_not_configured: "Apple",
@@ -33,11 +27,12 @@ const oauthButtonStyle: React.CSSProperties = {
   marginBottom: 10,
 };
 
-// A3 — Sign Up, with A5 (Choose Plan) folded in as a single step rather
-// than a separate screen-to-screen hop, since the only thing A5 needs is
-// which tier to hand off to D1 checkout with. Free stays in-app; Insider
-// / Elite redirect into the existing /upgrade/checkout flow right after
-// account creation.
+// A3 — Sign Up. Plan selection (A5) used to be folded into this same
+// screen as a second column, but it now happens after account creation
+// instead — signUpAction always creates the row as 'free' and the new
+// /onboarding/plan step (reached via /onboarding/profile) is the single
+// place tier gets chosen, for both email/password and OAuth signups.
+// That keeps this screen to one job: create the account.
 //
 // Google/Apple/Facebook buttons mirror SignInForm — same actions
 // (signInWithOAuth creates a new auth user the first time it sees that
@@ -48,7 +43,6 @@ const oauthButtonStyle: React.CSSProperties = {
 // the HTML parser, so the button would otherwise attach to (and try to
 // submit) the email/password form instead of its own action.
 export default function SignUpForm({ providerError }: { providerError?: string }) {
-  const [plan, setPlan] = useState<"free" | "insider" | "elite">("free");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
@@ -63,7 +57,6 @@ export default function SignUpForm({ providerError }: { providerError?: string }
   async function handleSubmit(formData: FormData) {
     setError(null);
     setPending(true);
-    formData.set("tier", plan);
     const res = await signUpAction(formData);
     setPending(false);
     if (!res.success) {
@@ -77,7 +70,7 @@ export default function SignUpForm({ providerError }: { providerError?: string }
     if (res.needsEmailConfirmation) {
       setAwaitingConfirmation(true);
     }
-    // Otherwise signUpAction already redirected.
+    // Otherwise signUpAction already redirected (to /onboarding/profile).
   }
 
   if (awaitingConfirmation) {
@@ -164,17 +157,15 @@ export default function SignUpForm({ providerError }: { providerError?: string }
         </div>
       )}
 
-      {/* Two columns: sign-up method on the left, plan picker on the
-          right — previously the plan picker was just stacked inside the
-          email form, pushing it (and the submit button) further down a
-          single long column. flex-wrap with a min-width on each column
-          means this still stacks to one column on narrow/mobile
+      {/* Two columns: OAuth on the left, email/password on the right —
+          same split as SignInForm. flex-wrap with a min-width on each
+          column means this still stacks to one column on narrow/mobile
           viewports without needing a separate media query. */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 32 }}>
-        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
           {notConfiguredLabel && (
             <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-              {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
+              {notConfiguredLabel} sign-up isn't enabled yet — use the form on the right for now.
             </div>
           )}
 
@@ -182,10 +173,10 @@ export default function SignUpForm({ providerError }: { providerError?: string }
               actions as SignInForm — Supabase OAuth has no separate
               "sign up" step, signInWithOAuth creates the account the
               first time it sees that provider identity. OAuth accounts
-              start on the free tier and can upgrade afterward via
-              /upgrade/checkout, same as anyone else picking a paid plan
-              here. Siblings of the email form below, not nested inside
-              it, for the same HTML-parser reason as SignInForm. */}
+              start on the free tier and choose a plan afterward via
+              /onboarding/plan, same as anyone signing up with email.
+              Siblings of the email form, not nested inside it, for the
+              same HTML-parser reason as SignInForm. */}
           <form action={signInWithGoogleAction}>
             <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
               <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
@@ -203,11 +194,18 @@ export default function SignUpForm({ providerError }: { providerError?: string }
               <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
             </button>
           </form>
+        </div>
 
-          <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
-            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-muted)",
+              marginBottom: 14,
+              textAlign: "center",
+            }}
+          >
+            Sign up with email
           </div>
 
           <form action={handleSubmit}>
@@ -250,33 +248,6 @@ export default function SignUpForm({ providerError }: { providerError?: string }
             <Link href="/sign-in" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
               Sign in
             </Link>
-          </div>
-        </div>
-
-        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {PLANS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPlan(p.id)}
-                className="btn"
-                style={{
-                  textAlign: "left",
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  background: plan === p.id ? "rgba(255,45,120,0.12)" : "var(--surface)",
-                  border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "var(--border-soft)"}`,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
-                  <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
-              </button>
-            ))}
           </div>
         </div>
       </div>

@@ -11,18 +11,18 @@ export interface AuthActionResult {
 }
 
 // A3 — Sign Up. Per Screen Inventory: "Create a new Play account. Name,
-// email, password, choose tier." Creates the real Supabase Auth user,
-// then a matching public.users row (id = auth user id, per the
-// users_select_own/users_update_own RLS policies which assume
-// auth.uid() = users.id). Tier selection (A5) is handled by the caller
-// redirecting into the existing D1 checkout flow for paid tiers — this
-// action always creates the row as 'free' and lets the upgrade flow be
-// the single place tier changes happen.
+// email, password." Creates the real Supabase Auth user, then a matching
+// public.users row (id = auth user id, per the users_select_own/
+// users_update_own RLS policies which assume auth.uid() = users.id).
+// Tier selection (A5) no longer happens on this screen — it's asked
+// right after, on /onboarding/plan (reached via /onboarding/profile),
+// for both email/password and OAuth signups. This action always creates
+// the row as 'free' here; choosing Insider/Elite on that later step is
+// what hands off into the existing D1 checkout flow.
 export async function signUpAction(formData: FormData): Promise<AuthActionResult> {
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
-  const tier = String(formData.get("tier") || "free");
 
   if (!name) return { success: false, error: "Name is required." };
   if (!email) return { success: false, error: "Email is required." };
@@ -106,9 +106,6 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
     return { success: true, needsEmailConfirmation: true };
   }
 
-  if (tier === "insider" || tier === "elite") {
-    redirect(`/upgrade/checkout?tier=${tier}`);
-  }
   redirect("/onboarding/profile");
 }
 

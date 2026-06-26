@@ -8,7 +8,7 @@ export default function SignUpPage({
   searchParams: { error?: string };
 }) {
   return (
-    <AuthShell title="Create your account" subtitle="Book Dubai's best venues in seconds." maxWidth={760} activeTab="sign-up">
+    <AuthShell title="Create your account" subtitle="Book Dubai's best venues in seconds." maxWidth={680} activeTab="sign-up">
       <SignUpForm providerError={searchParams.error} />
     </AuthShell>
   );
