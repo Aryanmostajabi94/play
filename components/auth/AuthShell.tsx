@@ -6,8 +6,14 @@ import Link from "next/link";
 // input/border bug made the whole page read as floating unstyled text
 // with nothing to anchor it, especially in the light "day" theme. Now
 // wraps the form in an actual card (.card, see globals.css) so there's a
-// visible boundary, and centers the whole thing vertically too instead
-// of just pinning it to the top of a tall, mostly-empty page.
+// visible boundary.
+//
+// No "← Back to Play" link anymore — SiteHeader (mounted by
+// app/(auth)/layout.tsx) is already on every auth page with a clickable
+// PLAY logo, so that link was a redundant second way to do the same
+// thing. Card sits near the top of the page (small top padding, no
+// vertical centering) instead of being centered in the viewport, so it
+// doesn't float awkwardly low/high depending on form height.
 export default function AuthShell({
   title,
   subtitle,
@@ -36,24 +42,10 @@ export default function AuthShell({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 20px",
+        padding: "24px 20px 40px",
       }}
     >
       <div style={{ width: "100%", maxWidth }}>
-        <Link
-          href="/"
-          style={{
-            fontSize: 13,
-            color: "var(--text-muted)",
-            textDecoration: "none",
-            display: "inline-block",
-            marginBottom: 20,
-          }}
-        >
-          ← Back to Play
-        </Link>
-
         <div className="card" style={{ padding: "36px 32px" }}>
           {activeTab && (
             <div
@@ -74,7 +66,7 @@ export default function AuthShell({
                   fontSize: 15,
                   color: activeTab === "sign-in" ? "var(--text-primary)" : "var(--text-muted)",
                   borderBottom:
-                    activeTab === "sign-in" ? "2px solid var(--accent-orange)" : "2px solid transparent",
+                    activeTab === "sign-in" ? "2px solid var(--accent-pink)" : "2px solid transparent",
                   marginBottom: -1,
                 }}
               >
@@ -91,7 +83,7 @@ export default function AuthShell({
                   fontSize: 15,
                   color: activeTab === "sign-up" ? "var(--text-primary)" : "var(--text-muted)",
                   borderBottom:
-                    activeTab === "sign-up" ? "2px solid var(--accent-orange)" : "2px solid transparent",
+                    activeTab === "sign-up" ? "2px solid var(--accent-pink)" : "2px solid transparent",
                   marginBottom: -1,
                 }}
               >
@@ -100,7 +92,7 @@ export default function AuthShell({
             </div>
           )}
 
-          <div className="heading" style={{ fontSize: 28 }}>
+          <div className="heading" style={{ fontSize: 30 }}>
             {title}
           </div>
           {subtitle && (

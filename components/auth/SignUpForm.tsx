@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AppleIcon from "./AppleIcon";
 import {
   signUpAction,
   signInWithGoogleAction,
@@ -17,22 +18,38 @@ const PROVIDER_LABEL: Record<string, string> = {
 
 const oauthButtonStyle: React.CSSProperties = {
   width: "100%",
-  padding: "13px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  padding: "12px 14px",
   borderRadius: 12,
   background: "var(--surface)",
-  border: "1px solid var(--border-strong)",
+  border: "1px solid var(--border-soft)",
   color: "var(--text-primary)",
-  fontWeight: 700,
-  fontSize: 14,
-  marginBottom: 10,
+  fontWeight: 600,
+  fontSize: 13,
 };
 
-// A3 — Sign Up. Plan selection (A5) used to be folded into this same
-// screen as a second column, but it now happens after account creation
-// instead — signUpAction always creates the row as 'free' and the new
-// /onboarding/plan step (reached via /onboarding/profile) is the single
-// place tier gets chosen, for both email/password and OAuth signups.
-// That keeps this screen to one job: create the account.
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: 1.5,
+  textTransform: "uppercase",
+  color: "var(--text-muted)",
+  marginBottom: 8,
+};
+
+// A3 — Sign Up. Single-column layout (Google, then Apple/Facebook side by
+// side, then a divider, then name/email/password) matching the card design
+// the user supplied (AuthPages.jsx) — replaces the previous two-column
+// OAuth/email split. That reference file also has its own in-card "choose
+// your plan" step after account info, but plan selection already happens
+// post-signup at /onboarding/plan (reached via /onboarding/profile, for
+// both email/password and OAuth signups — see ChoosePlanForm.tsx), so this
+// screen keeps its single job: create the account. signUpAction always
+// creates the row as 'free'.
 //
 // Google/Apple/Facebook buttons mirror SignInForm — same actions
 // (signInWithOAuth creates a new auth user the first time it sees that
@@ -157,99 +174,90 @@ export default function SignUpForm({ providerError }: { providerError?: string }
         </div>
       )}
 
-      {/* Two columns: OAuth on the left, email/password on the right —
-          same split as SignInForm. flex-wrap with a min-width on each
-          column means this still stacks to one column on narrow/mobile
-          viewports without needing a separate media query. */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 32 }}>
-        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
-          {notConfiguredLabel && (
-            <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-              {notConfiguredLabel} sign-up isn't enabled yet — use the form on the right for now.
-            </div>
-          )}
+      {notConfiguredLabel && (
+        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 14 }}>
+          {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
+        </div>
+      )}
 
-          {/* OAuth path is the fastest way in for most people. Same
-              actions as SignInForm — Supabase OAuth has no separate
-              "sign up" step, signInWithOAuth creates the account the
-              first time it sees that provider identity. OAuth accounts
-              start on the free tier and choose a plan afterward via
-              /onboarding/plan, same as anyone signing up with email.
-              Siblings of the email form, not nested inside it, for the
-              same HTML-parser reason as SignInForm. */}
-          <form action={signInWithGoogleAction}>
-            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-              <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
-            </button>
-          </form>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+        <form action={signInWithGoogleAction}>
+          <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+            <span aria-hidden>G</span>Continue with Google
+          </button>
+        </form>
 
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <form action={signInWithAppleAction}>
             <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-              <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
+              <AppleIcon />
+              Apple
             </button>
           </form>
-
           <form action={signInWithFacebookAction}>
-            <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
-              <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+              <span aria-hidden>f</span>Facebook
             </button>
           </form>
         </div>
+      </div>
 
-        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--text-muted)",
-              marginBottom: 14,
-              textAlign: "center",
-            }}
-          >
-            Sign up with email
-          </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+        <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 1 }}>or</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+      </div>
 
-          <form action={handleSubmit}>
-            <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
-            <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-            <input
-              name="password"
-              type="password"
-              placeholder="Password (min. 8 characters)"
-              required
-              minLength={8}
-              className="input-el"
-              style={{ marginBottom: 18 }}
-            />
-
-            {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
-
-            <button
-              type="submit"
-              disabled={pending}
-              className="btn"
-              style={{
-                width: "100%",
-                padding: "13px",
-                borderRadius: 12,
-                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-                border: "none",
-                opacity: pending ? 0.6 : 1,
-              }}
-            >
-              {pending ? "Creating account..." : "Create account"}
-            </button>
-          </form>
-
-          <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
-            Already have an account?{" "}
-            <Link href="/sign-in" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
-              Sign in
-            </Link>
-          </div>
+      <form action={handleSubmit}>
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Full Name</label>
+          <input name="name" placeholder="Your name" required className="input-el" />
         </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Email</label>
+          <input name="email" type="email" placeholder="you@email.com" required className="input-el" />
+        </div>
+        <div style={{ marginBottom: 18 }}>
+          <label style={labelStyle}>Password</label>
+          <input
+            name="password"
+            type="password"
+            placeholder="Min. 8 characters"
+            required
+            minLength={8}
+            className="input-el"
+          />
+        </div>
+
+        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn"
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: 13,
+            background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 14,
+            border: "none",
+            letterSpacing: 0.5,
+            opacity: pending ? 0.6 : 1,
+            marginBottom: 18,
+          }}
+        >
+          {pending ? "Creating account..." : "Create account →"}
+        </button>
+      </form>
+
+      <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)" }}>
+        Already a member?{" "}
+        <Link href="/sign-in" style={{ color: "var(--accent-pink)", fontWeight: 700, textDecoration: "none" }}>
+          Sign in
+        </Link>
       </div>
     </div>
   );

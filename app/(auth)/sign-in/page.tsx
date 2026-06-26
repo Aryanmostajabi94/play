@@ -8,7 +8,12 @@ export default function SignInPage({
   searchParams: { error?: string };
 }) {
   return (
-    <AuthShell title="Welcome back" subtitle="Sign in to manage your bookings." maxWidth={680} activeTab="sign-in">
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in to access your bookings and member benefits."
+      maxWidth={440}
+      activeTab="sign-in"
+    >
       <SignInForm providerError={searchParams.error} />
     </AuthShell>
   );
