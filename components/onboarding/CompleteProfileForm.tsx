@@ -51,7 +51,7 @@ export default function CompleteProfileForm({ profile }: { profile: AccountProfi
       setError(res.error ?? "Something went wrong.");
       return;
     }
-    router.push("/");
+    router.push("/onboarding/plan");
   }
 
   return (
@@ -111,7 +111,7 @@ export default function CompleteProfileForm({ profile }: { profile: AccountProfi
       </button>
 
       <button
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/onboarding/plan")}
         className="btn"
         style={{
           width: "100%",
