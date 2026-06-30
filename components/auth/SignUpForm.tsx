@@ -2,18 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AppleIcon from "./AppleIcon";
 import {
   signUpAction,
   signInWithGoogleAction,
   signInWithAppleAction,
   signInWithFacebookAction,
 } from "../../app/actions/auth";
-
-const PLANS = [
-  { id: "free", label: "Explorer", price: "Free", desc: "Browse + book open venues" },
-  { id: "insider", label: "Insider", price: "from $19/mo", desc: "Unlock Insider-only venues" },
-  { id: "elite", label: "Elite", price: "from $49/mo", desc: "Full access, priority requests" },
-] as const;
 
 const PROVIDER_LABEL: Record<string, string> = {
   google_not_configured: "Google",
@@ -23,47 +18,38 @@ const PROVIDER_LABEL: Record<string, string> = {
 
 const oauthButtonStyle: React.CSSProperties = {
   width: "100%",
-  padding: "13px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  padding: "12px 14px",
   borderRadius: 12,
   background: "var(--surface)",
-  border: "1px solid var(--border-strong)",
+  border: "1px solid var(--border-soft)",
   color: "var(--text-primary)",
-  fontWeight: 700,
-  fontSize: 14,
-  marginBottom: 10,
+  fontWeight: 600,
+  fontSize: 13,
 };
 
-// A3 — Sign Up, with A5 (Choose Plan) folded in as a single step rather
-// than a separate screen-to-screen hop, since the only thing A5 needs is
-// which tier to hand off to D1 checkout with. Free stays in-app; Insider
-// / Elite redirect into the existing /upgrade/checkout flow right after
-// account creation.
-//
-// Google/Apple/Facebook buttons mirror SignInForm — same actions
-// (signInWithOAuth creates a new auth user the first time it sees that
-// account, same as a plain sign-in), since there's no separate "sign up"
-// vs "sign in" concept on Supabase's OAuth side. The forms here are
-// siblings of the main one rather than nested inside it for the same
-// reason as SignInForm: a nested <form> tag gets silently dropped by
-// the HTML parser, so the button would otherwise attach to (and try to
-// submit) the email/password form instead of its own action.
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: 1.5,
+  textTransform: "uppercase",
+  color: "var(--text-muted)",
+  marginBottom: 8,
+};
+
 export default function SignUpForm({ providerError }: { providerError?: string }) {
-  const [plan, setPlan] = useState<"free" | "insider" | "elite">("free");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-  // signUpAction surfaces Supabase's own error text verbatim — for a
-  // duplicate email that's "User already registered" — so this is a
-  // string match rather than a separate flag on AuthActionResult. A
-  // dedicated modal (instead of the usual inline red text) since the
-  // useful next step here isn't "fix a typo and resubmit", it's "go sign
-  // in instead", which deserves a more direct nudge.
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
     setPending(true);
-    formData.set("tier", plan);
     const res = await signUpAction(formData);
     setPending(false);
     if (!res.success) {
@@ -77,15 +63,12 @@ export default function SignUpForm({ providerError }: { providerError?: string }
     if (res.needsEmailConfirmation) {
       setAwaitingConfirmation(true);
     }
-    // Otherwise signUpAction already redirected.
   }
 
   if (awaitingConfirmation) {
     return (
       <div style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
-        Check your email to confirm your account, then sign in — you'll be able to
-        finish your profile and start browsing right away. You only need to verify
-        again later if you try to book a place.
+        Check your email to confirm your account, then sign in.
       </div>
     );
   }
@@ -96,189 +79,79 @@ export default function SignUpForm({ providerError }: { providerError?: string }
     <div>
       {showDuplicateModal && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
           onClick={() => setShowDuplicateModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "var(--bg-primary)",
-              border: "1px solid var(--border-strong)",
-              borderRadius: 16,
-              padding: 28,
-              maxWidth: 360,
-              width: "100%",
-              textAlign: "center",
-            }}
+            style={{ background: "var(--bg-primary)", border: "1px solid var(--border-strong)", borderRadius: 16, padding: 28, maxWidth: 360, width: "100%", textAlign: "center" }}
           >
-            <div className="heading" style={{ fontSize: 20, marginBottom: 10 }}>
-              Account already exists
-            </div>
+            <div className="heading" style={{ fontSize: 20, marginBottom: 10 }}>Account already exists</div>
             <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 22, lineHeight: 1.5 }}>
               There's already an account with this email. Sign in instead to continue.
             </div>
-            <Link
-              href="/sign-in"
-              className="btn"
-              style={{
-                display: "block",
-                width: "100%",
-                padding: "12px",
-                borderRadius: 12,
-                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-                textDecoration: "none",
-                marginBottom: 10,
-              }}
-            >
+            <Link href="/sign-in" className="btn" style={{ display: "block", width: "100%", padding: "12px", borderRadius: 12, background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))", color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none", marginBottom: 10 }}>
               Go to sign in
             </Link>
-            <button
-              type="button"
-              onClick={() => setShowDuplicateModal(false)}
-              className="btn"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: 12,
-                background: "transparent",
-                border: "none",
-                color: "var(--text-muted)",
-                fontSize: 13,
-              }}
-            >
+            <button type="button" onClick={() => setShowDuplicateModal(false)} className="btn" style={{ width: "100%", padding: "10px", borderRadius: 12, background: "transparent", border: "none", color: "var(--text-muted)", fontSize: 13 }}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* Two columns: sign-up method on the left, plan picker on the
-          right — previously the plan picker was just stacked inside the
-          email form, pushing it (and the submit button) further down a
-          single long column. flex-wrap with a min-width on each column
-          means this still stacks to one column on narrow/mobile
-          viewports without needing a separate media query. */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 32 }}>
-        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
-          {notConfiguredLabel && (
-            <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 12 }}>
-              {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
-            </div>
-          )}
+      {notConfiguredLabel && (
+        <div style={{ color: "var(--accent-gold)", fontSize: 12, marginBottom: 14 }}>
+          {notConfiguredLabel} sign-up isn't enabled yet — use the form below for now.
+        </div>
+      )}
 
-          {/* OAuth path is the fastest way in for most people. Same
-              actions as SignInForm — Supabase OAuth has no separate
-              "sign up" step, signInWithOAuth creates the account the
-              first time it sees that provider identity. OAuth accounts
-              start on the free tier and can upgrade afterward via
-              /upgrade/checkout, same as anyone else picking a paid plan
-              here. Siblings of the email form below, not nested inside
-              it, for the same HTML-parser reason as SignInForm. */}
-          <form action={signInWithGoogleAction}>
-            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-              <span aria-hidden style={{ marginRight: 8 }}>G</span>Continue with Google
-            </button>
-          </form>
-
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+        <form action={signInWithGoogleAction}>
+          <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
+            <span aria-hidden>G</span>Continue with Google
+          </button>
+        </form>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <form action={signInWithAppleAction}>
-            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}>
-              <span aria-hidden style={{ marginRight: 8 }}></span>Continue with Apple
-            </button>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}><AppleIcon />Apple</button>
           </form>
-
           <form action={signInWithFacebookAction}>
-            <button type="submit" className="btn oauth-btn" style={{ ...oauthButtonStyle, marginBottom: 0 }}>
-              <span aria-hidden style={{ marginRight: 8 }}>f</span>Continue with Facebook
-            </button>
+            <button type="submit" className="btn oauth-btn" style={oauthButtonStyle}><span aria-hidden>f</span>Facebook</button>
           </form>
+        </div>
+      </div>
 
-          <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>or sign up with email</span>
-            <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
-          </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+        <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 1 }}>or</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border-soft)" }} />
+      </div>
 
-          <form action={handleSubmit}>
-            <input name="name" placeholder="Full name" required className="input-el" style={{ marginBottom: 10 }} />
-            <input name="email" type="email" placeholder="Email" required className="input-el" style={{ marginBottom: 10 }} />
-            <input
-              name="password"
-              type="password"
-              placeholder="Password (min. 8 characters)"
-              required
-              minLength={8}
-              className="input-el"
-              style={{ marginBottom: 18 }}
-            />
-
-            {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
-
-            <button
-              type="submit"
-              disabled={pending}
-              className="btn"
-              style={{
-                width: "100%",
-                padding: "13px",
-                borderRadius: 12,
-                background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-                border: "none",
-                opacity: pending ? 0.6 : 1,
-              }}
-            >
-              {pending ? "Creating account..." : "Create account"}
-            </button>
-          </form>
-
-          <div style={{ marginTop: 18, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
-            Already have an account?{" "}
-            <Link href="/sign-in" style={{ color: "var(--accent-pink)", textDecoration: "none" }}>
-              Sign in
-            </Link>
-          </div>
+      <form action={handleSubmit}>
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Full Name</label>
+          <input name="name" placeholder="Your name" required className="input-el" />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Email</label>
+          <input name="email" type="email" placeholder="you@email.com" required className="input-el" />
+        </div>
+        <div style={{ marginBottom: 18 }}>
+          <label style={labelStyle}>Password</label>
+          <input name="password" type="password" placeholder="Min. 8 characters" required minLength={8} className="input-el" />
         </div>
 
-        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Choose your plan</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {PLANS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPlan(p.id)}
-                className="btn"
-                style={{
-                  textAlign: "left",
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  background: plan === p.id ? "rgba(255,45,120,0.12)" : "var(--surface)",
-                  border: `1px solid ${plan === p.id ? "var(--accent-pink)" : "var(--border-soft)"}`,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
-                  <span style={{ fontSize: 12, color: "var(--accent-gold)" }}>{p.price}</span>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.desc}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+        {error && <div style={{ color: "var(--accent-pink)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
+
+        <button type="submit" disabled={pending} className="btn" style={{ width: "100%", padding: "14px", borderRadius: 13, background: "linear-gradient(135deg, var(--accent-pink), var(--accent-orange))", color: "#fff", fontWeight: 800, fontSize: 14, border: "none", letterSpacing: 0.5, opacity: pending ? 0.6 : 1, marginBottom: 18 }}>
+          {pending ? "Creating account..." : "Create account →"}
+        </button>
+      </form>
+
+      <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)" }}>
+        Already a member?{" "}
+        <Link href="/sign-in" style={{ color: "var(--accent-pink)", fontWeight: 700, textDecoration: "none" }}>Sign in</Link>
       </div>
     </div>
   );
